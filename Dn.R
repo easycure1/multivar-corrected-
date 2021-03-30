@@ -6,7 +6,6 @@ Dn <- function(f){
   d <- dim(f)[1]
   N <- dim(f)[3]
   Dn <- matrix(rep(0, (2*N*d)^2), ncol = 2*N*d)
-  #B <- matrix(rep(0, (2*d)^2), ncol = 2*d)
   k <- 2*d
   while (k <= 2*N*d){
     Dn[(k-(2*d-1)):(k-d), (k-(2*d-1)):(k-d)] <- Re(f[ , , k/(2*d)])
