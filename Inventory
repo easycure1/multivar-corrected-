@@ -1,3 +1,6 @@
+## Need to construct a Cn then combine it to the following functions.
+
+
 ## Corrected VAR likelihood (frequency domain): f- and q-parametrization (see gibbs_multivariate_util.R)
 llike_var_corrected <- function(FZ, ar, f_param_half, sigma, f, excludeBoundary=T) { # exclude lambda_{0,N} for mean-centered TS
   d <- ncol(FZ)
