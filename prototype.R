@@ -10,8 +10,8 @@ llike_var_corrected <- function(FZ, ar, f_param_half, sigma, f, excludeBoundary=
   f_half_inv <- inv_cube(f_half, excludeBoundary)
   CFZ <- get_CFZ(FZ, f_half_inv, f_param_half, excludeBoundary)
   FCFZ <- Re(midft(CFZ))
-  ll <- 2*sum(logdet_cube(f_half_inv, excludeBoundary)) + # times 2, because of functional determinant in real-valued formulation
-    2*sum(logdet_cube(f_param_half, excludeBoundary)) + # times 2, because of functional determinant in real-valued formulation
+  ll <- 2*sum(logdet_cube(f_half_inv, excludeBoundary)) + # times 2, because of functional determinant in real-valued formulation ???
+    2*sum(logdet_cube(f_param_half, excludeBoundary)) + # times 2, because of functional determinant in real-valued formulation ???
     llike_var_partial(FCFZ, ar, sigma=sigma)
   return(ll)
 }
