@@ -1,4 +1,3 @@
-
 #---------------------VNP_256_VAR2-----------------------------------#
 
 med_vnp <- array(rep(NA, 2*2*129*1000), dim=c(2, 2, 129*1000))
@@ -27,7 +26,7 @@ for (i in 1:1000) {
   load(name)
   p05_vnp[, , (i*129-128):(129*i)] <- ret$psd.p05
 }
-save(mean_vnp, file='PSD_P05_imodel1_n256_VNP.RData')
+save(p05_vnp, file='PSD_P05_imodel1_n256_VNP.RData')
 
 
 
@@ -37,7 +36,7 @@ for (i in 1:1000) {
   load(name)
   p95_vnp[, , (i*129-128):(129*i)] <- ret$psd.p95
 }
-save(mean_vnp, file='PSD_P95_imodel1_n256_VNP.RData')
+save(p95_vnp, file='PSD_P95_imodel1_n256_VNP.RData')
 
 
 
@@ -47,7 +46,7 @@ for (i in 1:1000) {
   load(name)
   u05_vnp[, , (i*129-128):(129*i)] <- ret$psd.u05
 }
-save(mean_vnp, file='PSD_U05_imodel1_n256_VNP.RData')
+save(u05_vnp, file='PSD_U05_imodel1_n256_VNP.RData')
 
 
 
@@ -57,7 +56,7 @@ for (i in 1:1000) {
   load(name)
   u95_vnp[, , (i*129-128):(129*i)] <- ret$psd.u95
 }
-save(mean_vnp, file='PSD_U95_imodel1_n256_VNP.RData')
+save(u95_vnp, file='PSD_U95_imodel1_n256_VNP.RData')
 
 
 
@@ -91,7 +90,7 @@ for (i in 1:1000) {
   load(name)
   p05_vnp[, , (i*129-128):(129*i)] <- ret$psd.p05
 }
-save(mean_vnp, file='PSD_P05_imodel2_n256_VNP.RData')
+save(p05_vnp, file='PSD_P05_imodel2_n256_VNP.RData')
 
 
 
@@ -101,7 +100,7 @@ for (i in 1:1000) {
   load(name)
   p95_vnp[, , (i*129-128):(129*i)] <- ret$psd.p95
 }
-save(mean_vnp, file='PSD_P95_imodel2_n256_VNP.RData')
+save(p95_vnp, file='PSD_P95_imodel2_n256_VNP.RData')
 
 
 
@@ -111,7 +110,7 @@ for (i in 1:1000) {
   load(name)
   u05_vnp[, , (i*129-128):(129*i)] <- ret$psd.u05
 }
-save(mean_vnp, file='PSD_U05_imodel2_n256_VNP.RData')
+save(u05_vnp, file='PSD_U05_imodel2_n256_VNP.RData')
 
 
 
@@ -121,7 +120,7 @@ for (i in 1:1000) {
   load(name)
   u95_vnp[, , (i*129-128):(129*i)] <- ret$psd.u95
 }
-save(mean_vnp, file='PSD_U95_imodel2_n256_VNP.RData')
+save(u95_vnp, file='PSD_U95_imodel2_n256_VNP.RData')
 
 
 
@@ -158,7 +157,7 @@ for (i in 1:1000) {
   load(name)
   p05_vnp[, , (i*257-256):(257*i)] <- ret$psd.p05
 }
-save(mean_vnp, file='PSD_P05_imodel1_n512_VNP.RData')
+save(p05_vnp, file='PSD_P05_imodel1_n512_VNP.RData')
 
 
 
@@ -168,7 +167,7 @@ for (i in 1:1000) {
   load(name)
   p95_vnp[, , (i*257-256):(257*i)] <- ret$psd.p95
 }
-save(mean_vnp, file='PSD_P95_imodel1_n512_VNP.RData')
+save(p95_vnp, file='PSD_P95_imodel1_n512_VNP.RData')
 
 
 
@@ -178,7 +177,7 @@ for (i in 1:1000) {
   load(name)
   u05_vnp[, , (i*257-256):(257*i)] <- ret$psd.u05
 }
-save(mean_vnp, file='PSD_U05_imodel1_n512_VNP.RData')
+save(u05_vnp, file='PSD_U05_imodel1_n512_VNP.RData')
 
 
 
@@ -188,7 +187,7 @@ for (i in 1:1000) {
   load(name)
   u95_vnp[, , (i*257-256):(257*i)] <- ret$psd.u95
 }
-save(mean_vnp, file='PSD_U95_imodel1_n512_VNP.RData')
+save(u95_vnp, file='PSD_U95_imodel1_n512_VNP.RData')
 
 
 
@@ -222,7 +221,7 @@ for (i in 1:1000) {
   load(name)
   p05_vnp[, , (i*257-256):(257*i)] <- ret$psd.p05
 }
-save(mean_vnp, file='PSD_P05_imodel2_n512_VNP.RData')
+save(p05_vnp, file='PSD_P05_imodel2_n512_VNP.RData')
 
 
 
@@ -232,7 +231,7 @@ for (i in 1:1000) {
   load(name)
   p95_vnp[, , (i*257-256):(257*i)] <- ret$psd.p95
 }
-save(mean_vnp, file='PSD_P95_imodel2_n512_VNP.RData')
+save(p95_vnp, file='PSD_P95_imodel2_n512_VNP.RData')
 
 
 
@@ -242,7 +241,7 @@ for (i in 1:1000) {
   load(name)
   u05_vnp[, , (i*257-256):(257*i)] <- ret$psd.u05
 }
-save(mean_vnp, file='PSD_U05_imodel2_n512_VNP.RData')
+save(u05_vnp, file='PSD_U05_imodel2_n512_VNP.RData')
 
 
 
@@ -252,7 +251,7 @@ for (i in 1:1000) {
   load(name)
   u95_vnp[, , (i*257-256):(257*i)] <- ret$psd.u95
 }
-save(mean_vnp, file='PSD_U95_imodel2_n512_VNP.RData')
+save(u95_vnp, file='PSD_U95_imodel2_n512_VNP.RData')
 
 
 
@@ -288,7 +287,7 @@ for (i in 1:1000) {
   load(name)
   p05_vnp[, , (i*513-512):(513*i)] <- ret$psd.p05
 }
-save(mean_vnp, file='PSD_P05_imodel1_n1024_VNP.RData')
+save(p05_vnp, file='PSD_P05_imodel1_n1024_VNP.RData')
 
 
 
@@ -298,7 +297,7 @@ for (i in 1:1000) {
   load(name)
   p95_vnp[, , (i*513-512):(513*i)] <- ret$psd.p95
 }
-save(mean_vnp, file='PSD_P95_imodel1_n1024_VNP.RData')
+save(p95_vnp, file='PSD_P95_imodel1_n1024_VNP.RData')
 
 
 
@@ -308,7 +307,7 @@ for (i in 1:1000) {
   load(name)
   u05_vnp[, , (i*513-512):(513*i)] <- ret$psd.u05
 }
-save(mean_vnp, file='PSD_U05_imodel1_n1024_VNP.RData')
+save(u05_vnp, file='PSD_U05_imodel1_n1024_VNP.RData')
 
 
 
@@ -318,7 +317,7 @@ for (i in 1:1000) {
   load(name)
   u95_vnp[, , (i*513-512):(513*i)] <- ret$psd.u95
 }
-save(mean_vnp, file='PSD_U95_imodel1_n1024_VNP.RData')
+save(u95_vnp, file='PSD_U95_imodel1_n1024_VNP.RData')
 
 
 
@@ -354,7 +353,7 @@ for (i in 1:1000) {
   load(name)
   p05_vnp[, , (i*513-512):(513*i)] <- ret$psd.p05
 }
-save(mean_vnp, file='PSD_P05_imodel2_n1024_VNP.RData')
+save(p05_vnp, file='PSD_P05_imodel2_n1024_VNP.RData')
 
 
 
@@ -364,7 +363,7 @@ for (i in 1:1000) {
   load(name)
   p95_vnp[, , (i*513-512):(513*i)] <- ret$psd.p95
 }
-save(mean_vnp, file='PSD_P95_imodel2_n1024_VNP.RData')
+save(p95_vnp, file='PSD_P95_imodel2_n1024_VNP.RData')
 
 
 
@@ -374,7 +373,7 @@ for (i in 1:1000) {
   load(name)
   u05_vnp[, , (i*513-512):(513*i)] <- ret$psd.u05
 }
-save(mean_vnp, file='PSD_U05_imodel2_n1024_VNP.RData')
+save(u05_vnp, file='PSD_U05_imodel2_n1024_VNP.RData')
 
 
 
@@ -384,7 +383,7 @@ for (i in 1:1000) {
   load(name)
   u95_vnp[, , (i*513-512):(513*i)] <- ret$psd.u95
 }
-save(mean_vnp, file='PSD_U95_imodel2_n1024_VNP.RData')
+save(u95_vnp, file='PSD_U95_imodel2_n1024_VNP.RData')
 
 
 
@@ -395,7 +394,7 @@ save(mean_vnp, file='PSD_U95_imodel2_n1024_VNP.RData')
 
 med_var <- array(rep(NA, 2*2*129*1000), dim=c(2, 2, 129*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n256_imodel1_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n256_imodel1_repN', i, '_algo2_AIC.RData')
   load(name)
   med_var[, , (i*129-128):(129*i)] <- mcmc$psd.median 
 }
@@ -405,7 +404,7 @@ save(med_var, file='PSD_MEDIAN_imodel1_n256_VAR.RData')
 
 mean_var <- array(rep(NA, 2*2*129*1000), dim=c(2, 2, 129*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n256_imodel1_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n256_imodel1_repN', i, '_algo2_AIC.RData')
   load(name)
   mean_var[, , (i*129-128):(129*i)] <- mcmc$psd.mean 
 }
@@ -415,41 +414,41 @@ save(mean_var, file='PSD_MEAN_imodel1_n256_VAR.RData')
 
 p05_var <- array(rep(NA, 2*2*129*1000), dim=c(2, 2, 129*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n256_imodel1_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n256_imodel1_repN', i, '_algo2_AIC.RData')
   load(name)
   p05_var[, , (i*129-128):(129*i)] <- mcmc$psd.p05
 }
-save(mean_var, file='PSD_P05_imodel1_n256_VAR.RData')
+save(p05_var, file='PSD_P05_imodel1_n256_VAR.RData')
 
 
 
 p95_var <- array(rep(NA, 2*2*129*1000), dim=c(2, 2, 129*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n256_imodel1_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n256_imodel1_repN', i, '_algo2_AIC.RData')
   load(name)
   p95_var[, , (i*129-128):(129*i)] <- mcmc$psd.p95
 }
-save(mean_var, file='PSD_P95_imodel1_n256_VAR.RData')
+save(p95_var, file='PSD_P95_imodel1_n256_VAR.RData')
 
 
 
 u05_var <- array(rep(NA, 2*2*129*1000), dim=c(2, 2, 129*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n256_imodel1_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n256_imodel1_repN', i, '_algo2_AIC.RData')
   load(name)
   u05_var[, , (i*129-128):(129*i)] <- mcmc$psd.u05
 }
-save(mean_var, file='PSD_U05_imodel1_n256_VAR.RData')
+save(u05_var, file='PSD_U05_imodel1_n256_VAR.RData')
 
 
 
 u95_var <- array(rep(NA, 2*2*129*1000), dim=c(2, 2, 129*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n256_imodel1_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n256_imodel1_repN', i, '_algo2_AIC.RData')
   load(name)
   u95_var[, , (i*129-128):(129*i)] <- mcmc$psd.u95
 }
-save(mean_var, file='PSD_U95_imodel1_n256_VAR.RData')
+save(u95_var, file='PSD_U95_imodel1_n256_VAR.RData')
 
 
 
@@ -459,7 +458,7 @@ save(mean_var, file='PSD_U95_imodel1_n256_VAR.RData')
 
 med_var <- array(rep(NA, 2*2*129*1000), dim=c(2, 2, 129*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n256_imodel2_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n256_imodel2_repN', i, '_algo2_AIC.RData')
   load(name)
   med_var[, , (i*129-128):(129*i)] <- mcmc$psd.median 
 }
@@ -469,7 +468,7 @@ save(med_var, file='PSD_MEDIAN_imodel2_n256_VAR.RData')
 
 mean_var <- array(rep(NA, 2*2*129*1000), dim=c(2, 2, 129*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n256_imodel2_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n256_imodel2_repN', i, '_algo2_AIC.RData')
   load(name)
   mean_var[, , (i*129-128):(129*i)] <- mcmc$psd.mean 
 }
@@ -479,41 +478,41 @@ save(mean_var, file='PSD_MEAN_imodel2_n256_VAR.RData')
 
 p05_var <- array(rep(NA, 2*2*129*1000), dim=c(2, 2, 129*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n256_imodel2_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n256_imodel2_repN', i, '_algo2_AIC.RData')
   load(name)
   p05_var[, , (i*129-128):(129*i)] <- mcmc$psd.p05
 }
-save(mean_var, file='PSD_P05_imodel2_n256_VAR.RData')
+save(p05_var, file='PSD_P05_imodel2_n256_VAR.RData')
 
 
 
 p95_var <- array(rep(NA, 2*2*129*1000), dim=c(2, 2, 129*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n256_imodel2_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n256_imodel2_repN', i, '_algo2_AIC.RData')
   load(name)
   p95_var[, , (i*129-128):(129*i)] <- mcmc$psd.p95
 }
-save(mean_var, file='PSD_P95_imodel2_n256_VAR.RData')
+save(p95_var, file='PSD_P95_imodel2_n256_VAR.RData')
 
 
 
 u05_var <- array(rep(NA, 2*2*129*1000), dim=c(2, 2, 129*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n256_imodel2_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n256_imodel2_repN', i, '_algo2_AIC.RData')
   load(name)
   u05_var[, , (i*129-128):(129*i)] <- mcmc$psd.u05
 }
-save(mean_var, file='PSD_U05_imodel2_n256_VAR.RData')
+save(u05_var, file='PSD_U05_imodel2_n256_VAR.RData')
 
 
 
 u95_var <- array(rep(NA, 2*2*129*1000), dim=c(2, 2, 129*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n256_imodel2_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n256_imodel2_repN', i, '_algo2_AIC.RData')
   load(name)
   u95_var[, , (i*129-128):(129*i)] <- mcmc$psd.u95
 }
-save(mean_var, file='PSD_U95_imodel2_n256_VAR.RData')
+save(u95_var, file='PSD_U95_imodel2_n256_VAR.RData')
 
 
 
@@ -523,7 +522,7 @@ save(mean_var, file='PSD_U95_imodel2_n256_VAR.RData')
 
 med_var <- array(rep(NA, 2*2*257*1000), dim=c(2, 2, 257*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n512_imodel1_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n512_imodel1_repN', i, '_algo2_AIC.RData')
   load(name)
   med_var[, , (i*257-256):(257*i)] <- mcmc$psd.median 
 }
@@ -533,7 +532,7 @@ save(med_var, file='PSD_MEDIAN_imodel1_n512_VAR.RData')
 
 mean_var <- array(rep(NA, 2*2*257*1000), dim=c(2, 2, 257*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n512_imodel1_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n512_imodel1_repN', i, '_algo2_AIC.RData')
   load(name)
   mean_var[, , (i*257-256):(257*i)] <- mcmc$psd.mean 
 }
@@ -543,41 +542,41 @@ save(mean_var, file='PSD_MEAN_imodel1_n512_VAR.RData')
 
 p05_var <- array(rep(NA, 2*2*257*1000), dim=c(2, 2, 257*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n512_imodel1_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n512_imodel1_repN', i, '_algo2_AIC.RData')
   load(name)
   p05_var[, , (i*257-256):(257*i)] <- mcmc$psd.p05
 }
-save(mean_var, file='PSD_P05_imodel1_n512_VAR.RData')
+save(p05_var, file='PSD_P05_imodel1_n512_VAR.RData')
 
 
 
 p95_var <- array(rep(NA, 2*2*257*1000), dim=c(2, 2, 257*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n512_imodel1_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n512_imodel1_repN', i, '_algo2_AIC.RData')
   load(name)
   p95_var[, , (i*257-256):(257*i)] <- mcmc$psd.p95
 }
-save(mean_var, file='PSD_P95_imodel1_n512_VAR.RData')
+save(p95_var, file='PSD_P95_imodel1_n512_VAR.RData')
 
 
 
 u05_var <- array(rep(NA, 2*2*257*1000), dim=c(2, 2, 257*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n512_imodel1_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n512_imodel1_repN', i, '_algo2_AIC.RData')
   load(name)
   u05_var[, , (i*257-256):(257*i)] <- mcmc$psd.u05
 }
-save(mean_var, file='PSD_U05_imodel1_n512_VAR.RData')
+save(u05_var, file='PSD_U05_imodel1_n512_VAR.RData')
 
 
 
 u95_var <- array(rep(NA, 2*2*257*1000), dim=c(2, 2, 257*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n512_imodel1_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n512_imodel1_repN', i, '_algo2_AIC.RData')
   load(name)
   u95_var[, , (i*257-256):(257*i)] <- mcmc$psd.u95
 }
-save(mean_var, file='PSD_U95_imodel1_n512_VAR.RData')
+save(u95_var, file='PSD_U95_imodel1_n512_VAR.RData')
 
 
 
@@ -587,7 +586,7 @@ save(mean_var, file='PSD_U95_imodel1_n512_VAR.RData')
 
 med_var <- array(rep(NA, 2*2*257*1000), dim=c(2, 2, 257*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n512_imodel2_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n512_imodel2_repN', i, '_algo2_AIC.RData')
   load(name)
   med_var[, , (i*257-256):(257*i)] <- mcmc$psd.median 
 }
@@ -597,7 +596,7 @@ save(med_var, file='PSD_MEDIAN_imodel2_n512_VAR.RData')
 
 mean_var <- array(rep(NA, 2*2*257*1000), dim=c(2, 2, 257*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n512_imodel2_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n512_imodel2_repN', i, '_algo2_AIC.RData')
   load(name)
   mean_var[, , (i*257-256):(257*i)] <- mcmc$psd.mean 
 }
@@ -607,41 +606,41 @@ save(mean_var, file='PSD_MEAN_imodel2_n512_VAR.RData')
 
 p05_var <- array(rep(NA, 2*2*257*1000), dim=c(2, 2, 257*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n512_imodel2_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n512_imodel2_repN', i, '_algo2_AIC.RData')
   load(name)
   p05_var[, , (i*257-256):(257*i)] <- mcmc$psd.p05
 }
-save(mean_var, file='PSD_P05_imodel2_n512_VAR.RData')
+save(p05_var, file='PSD_P05_imodel2_n512_VAR.RData')
 
 
 
 p95_var <- array(rep(NA, 2*2*257*1000), dim=c(2, 2, 257*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n512_imodel2_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n512_imodel2_repN', i, '_algo2_AIC.RData')
   load(name)
   p95_var[, , (i*257-256):(257*i)] <- mcmc$psd.p95
 }
-save(mean_var, file='PSD_P95_imodel2_n512_VAR.RData')
+save(p95_var, file='PSD_P95_imodel2_n512_VAR.RData')
 
 
 
 u05_var <- array(rep(NA, 2*2*257*1000), dim=c(2, 2, 257*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n512_imodel2_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n512_imodel2_repN', i, '_algo2_AIC.RData')
   load(name)
   u05_var[, , (i*257-256):(257*i)] <- mcmc$psd.u05
 }
-save(mean_var, file='PSD_U05_imodel2_n512_VAR.RData')
+save(u05_var, file='PSD_U05_imodel2_n512_VAR.RData')
 
 
 
 u95_var <- array(rep(NA, 2*2*257*1000), dim=c(2, 2, 257*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n512_imodel2_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n512_imodel2_repN', i, '_algo2_AIC.RData')
   load(name)
   u95_var[, , (i*257-256):(257*i)] <- mcmc$psd.u95
 }
-save(mean_var, file='PSD_U95_imodel2_n512_VAR.RData')
+save(u95_var, file='PSD_U95_imodel2_n512_VAR.RData')
 
 
 
@@ -651,7 +650,7 @@ save(mean_var, file='PSD_U95_imodel2_n512_VAR.RData')
 
 med_var <- array(rep(NA, 2*2*513*1000), dim=c(2, 2, 513*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n1024_imodel1_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n1024_imodel1_repN', i, '_algo2_AIC.RData')
   load(name)
   med_var[, , (i*513-512):(513*i)] <- mcmc$psd.median 
 }
@@ -661,7 +660,7 @@ save(med_var, file='PSD_MEDIAN_imodel1_n1024_VAR.RData')
 
 mean_var <- array(rep(NA, 2*2*513*1000), dim=c(2, 2, 513*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n1024_imodel1_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n1024_imodel1_repN', i, '_algo2_AIC.RData')
   load(name)
   mean_var[, , (i*513-512):(513*i)] <- mcmc$psd.mean 
 }
@@ -671,41 +670,41 @@ save(mean_var, file='PSD_MEAN_imodel1_n1024_VAR.RData')
 
 p05_var <- array(rep(NA, 2*2*513*1000), dim=c(2, 2, 513*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n1024_imodel1_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n1024_imodel1_repN', i, '_algo2_AIC.RData')
   load(name)
   p05_var[, , (i*513-512):(513*i)] <- mcmc$psd.p05
 }
-save(mean_var, file='PSD_P05_imodel1_n1024_VAR.RData')
+save(p05_var, file='PSD_P05_imodel1_n1024_VAR.RData')
 
 
 
 p95_var <- array(rep(NA, 2*2*513*1000), dim=c(2, 2, 513*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n1024_imodel1_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n1024_imodel1_repN', i, '_algo2_AIC.RData')
   load(name)
   p95_var[, , (i*513-512):(513*i)] <- mcmc$psd.p95
 }
-save(mean_var, file='PSD_P95_imodel1_n1024_VAR.RData')
+save(p95_var, file='PSD_P95_imodel1_n1024_VAR.RData')
 
 
 
 u05_var <- array(rep(NA, 2*2*513*1000), dim=c(2, 2, 513*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n1024_imodel1_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n1024_imodel1_repN', i, '_algo2_AIC.RData')
   load(name)
   u05_var[, , (i*513-512):(513*i)] <- mcmc$psd.u05
 }
-save(mean_var, file='PSD_U05_imodel1_n1024_VAR.RData')
+save(u05_var, file='PSD_U05_imodel1_n1024_VAR.RData')
 
 
 
 u95_var <- array(rep(NA, 2*2*513*1000), dim=c(2, 2, 513*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n1024_imodel1_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n1024_imodel1_repN', i, '_algo2_AIC.RData')
   load(name)
   u95_var[, , (i*513-512):(513*i)] <- mcmc$psd.u95
 }
-save(mean_var, file='PSD_U95_imodel1_n1024_VAR.RData')
+save(u95_var, file='PSD_U95_imodel1_n1024_VAR.RData')
 
 
 
@@ -717,7 +716,7 @@ save(mean_var, file='PSD_U95_imodel1_n1024_VAR.RData')
 
 med_var <- array(rep(NA, 2*2*513*1000), dim=c(2, 2, 513*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n1024_imodel2_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n1024_imodel2_repN', i, '_algo2_AIC.RData')
   load(name)
   med_var[, , (i*513-512):(513*i)] <- mcmc$psd.median 
 }
@@ -727,7 +726,7 @@ save(med_var, file='PSD_MEDIAN_imodel2_n1024_VAR.RData')
 
 mean_var <- array(rep(NA, 2*2*513*1000), dim=c(2, 2, 513*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n1024_imodel2_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n1024_imodel2_repN', i, '_algo2_AIC.RData')
   load(name)
   mean_var[, , (i*513-512):(513*i)] <- mcmc$psd.mean 
 }
@@ -737,41 +736,41 @@ save(mean_var, file='PSD_MEAN_imodel2_n1024_VAR.RData')
 
 p05_var <- array(rep(NA, 2*2*513*1000), dim=c(2, 2, 513*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n1024_imodel2_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n1024_imodel2_repN', i, '_algo2_AIC.RData')
   load(name)
   p05_var[, , (i*513-512):(513*i)] <- mcmc$psd.p05
 }
-save(mean_var, file='PSD_P05_imodel2_n1024_VAR.RData')
+save(p05_var, file='PSD_P05_imodel2_n1024_VAR.RData')
 
 
 
 p95_var <- array(rep(NA, 2*2*513*1000), dim=c(2, 2, 513*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n1024_imodel2_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n1024_imodel2_repN', i, '_algo2_AIC.RData')
   load(name)
   p95_var[, , (i*513-512):(513*i)] <- mcmc$psd.p95
 }
-save(mean_var, file='PSD_P95_imodel2_n1024_VAR.RData')
+save(p95_var, file='PSD_P95_imodel2_n1024_VAR.RData')
 
 
 
 u05_var <- array(rep(NA, 2*2*513*1000), dim=c(2, 2, 513*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n1024_imodel2_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n1024_imodel2_repN', i, '_algo2_AIC.RData')
   load(name)
   u05_var[, , (i*513-512):(513*i)] <- mcmc$psd.u05
 }
-save(mean_var, file='PSD_U05_imodel2_n1024_VAR.RData')
+save(u05_var, file='PSD_U05_imodel2_n1024_VAR.RData')
 
 
 
 u95_var <- array(rep(NA, 2*2*513*1000), dim=c(2, 2, 513*1000))
 for (i in 1:1000) {
-  name <- paste0('RES_MULTI__n1024_imodel2_repN', i, '_algo2.RData')
+  name <- paste0('RES_MULTI__n1024_imodel2_repN', i, '_algo2_AIC.RData')
   load(name)
   u95_var[, , (i*513-512):(513*i)] <- mcmc$psd.u95
 }
-save(mean_var, file='PSD_U95_imodel2_n1024_VAR.RData')
+save(u95_var, file='PSD_U95_imodel2_n1024_VAR.RData')
 
 
 
@@ -810,7 +809,7 @@ for (i in 1:1000) {
   load(name)
   p05_vnpc[, , (i*129-128):(129*i)] <- mcmc$fpsd.s05
 }
-save(mean_vnpc, file='PSD_P05_imodel1_n256_VNPC.RData')
+save(p05_vnpc, file='PSD_P05_imodel1_n256_VNPC.RData')
 
 
 
@@ -820,7 +819,7 @@ for (i in 1:1000) {
   load(name)
   p95_vnpc[, , (i*129-128):(129*i)] <- mcmc$fpsd.s95
 }
-save(mean_vnpc, file='PSD_P95_imodel1_n256_VNPC.RData')
+save(p95_vnpc, file='PSD_P95_imodel1_n256_VNPC.RData')
 
 
 
@@ -830,7 +829,7 @@ for (i in 1:1000) {
   load(name)
   u05_vnpc[, , (i*129-128):(129*i)] <- mcmc$fpsd.uuci05
 }
-save(mean_vnpc, file='PSD_U05_imodel1_n256_VNPC.RData')
+save(u05_vnpc, file='PSD_U05_imodel1_n256_VNPC.RData')
 
 
 
@@ -840,7 +839,7 @@ for (i in 1:1000) {
   load(name)
   u95_vnpc[, , (i*129-128):(129*i)] <- mcmc$fpsd.uuci95
 }
-save(mean_vnpc, file='PSD_U95_imodel1_n256_VNPC.RData')
+save(u95_vnpc, file='PSD_U95_imodel1_n256_VNPC.RData')
 
 
 
@@ -874,7 +873,7 @@ for (i in 1:1000) {
   load(name)
   p05_vnpc[, , (i*129-128):(129*i)] <- mcmc$fpsd.s05
 }
-save(mean_vnpc, file='PSD_P05_imodel2_n256_VNPC.RData')
+save(p05_vnpc, file='PSD_P05_imodel2_n256_VNPC.RData')
 
 
 
@@ -884,7 +883,7 @@ for (i in 1:1000) {
   load(name)
   p95_vnpc[, , (i*129-128):(129*i)] <- mcmc$fpsd.s95
 }
-save(mean_vnpc, file='PSD_P95_imodel2_n256_VNPC.RData')
+save(p95_vnpc, file='PSD_P95_imodel2_n256_VNPC.RData')
 
 
 
@@ -894,7 +893,7 @@ for (i in 1:1000) {
   load(name)
   u05_vnpc[, , (i*129-128):(129*i)] <- mcmc$fpsd.uuci05
 }
-save(mean_vnpc, file='PSD_U05_imodel2_n256_VNPC.RData')
+save(u05_vnpc, file='PSD_U05_imodel2_n256_VNPC.RData')
 
 
 
@@ -904,7 +903,7 @@ for (i in 1:1000) {
   load(name)
   u95_vnpc[, , (i*129-128):(129*i)] <- mcmc$fpsd.uuci95
 }
-save(mean_vnpc, file='PSD_U95_imodel2_n256_VNPC.RData')
+save(u95_vnpc, file='PSD_U95_imodel2_n256_VNPC.RData')
 
 
 
@@ -938,7 +937,7 @@ for (i in 1:1000) {
   load(name)
   p05_vnpc[, , (i*257-256):(257*i)] <- mcmc$fpsd.s05
 }
-save(mean_vnpc, file='PSD_P05_imodel1_n512_VNPC.RData')
+save(p05_vnpc, file='PSD_P05_imodel1_n512_VNPC.RData')
 
 
 
@@ -948,7 +947,7 @@ for (i in 1:1000) {
   load(name)
   p95_vnpc[, , (i*257-256):(257*i)] <- mcmc$fpsd.s95
 }
-save(mean_vnpc, file='PSD_P95_imodel1_n512_VNPC.RData')
+save(p95_vnpc, file='PSD_P95_imodel1_n512_VNPC.RData')
 
 
 
@@ -958,7 +957,7 @@ for (i in 1:1000) {
   load(name)
   u05_vnpc[, , (i*257-256):(257*i)] <- mcmc$fpsd.uuci05
 }
-save(mean_vnpc, file='PSD_U05_imodel1_n512_VNPC.RData')
+save(u05_vnpc, file='PSD_U05_imodel1_n512_VNPC.RData')
 
 
 
@@ -968,7 +967,7 @@ for (i in 1:1000) {
   load(name)
   u95_vnpc[, , (i*257-256):(257*i)] <- mcmc$fpsd.uuci95
 }
-save(mean_vnpc, file='PSD_U95_imodel1_n512_VNPC.RData')
+save(u95_vnpc, file='PSD_U95_imodel1_n512_VNPC.RData')
 
 
 
@@ -1002,7 +1001,7 @@ for (i in 1:1000) {
   load(name)
   p05_vnpc[, , (i*257-256):(257*i)] <- mcmc$fpsd.s05
 }
-save(mean_vnpc, file='PSD_P05_imodel2_n512_VNPC.RData')
+save(p05_vnpc, file='PSD_P05_imodel2_n512_VNPC.RData')
 
 
 
@@ -1012,7 +1011,7 @@ for (i in 1:1000) {
   load(name)
   p95_vnpc[, , (i*257-256):(257*i)] <- mcmc$fpsd.s95
 }
-save(mean_vnpc, file='PSD_P95_imodel2_n512_VNPC.RData')
+save(p95_vnpc, file='PSD_P95_imodel2_n512_VNPC.RData')
 
 
 
@@ -1022,7 +1021,7 @@ for (i in 1:1000) {
   load(name)
   u05_vnpc[, , (i*257-256):(257*i)] <- mcmc$fpsd.uuci05
 }
-save(mean_vnpc, file='PSD_U05_imodel2_n512_VNPC.RData')
+save(u05_vnpc, file='PSD_U05_imodel2_n512_VNPC.RData')
 
 
 
@@ -1032,7 +1031,7 @@ for (i in 1:1000) {
   load(name)
   u95_vnpc[, , (i*257-256):(257*i)] <- mcmc$fpsd.uuci95
 }
-save(mean_vnpc, file='PSD_U95_imodel2_n512_VNPC.RData')
+save(u95_vnpc, file='PSD_U95_imodel2_n512_VNPC.RData')
 
 
 
@@ -1066,7 +1065,7 @@ for (i in 1:1000) {
   load(name)
   p05_vnpc[, , (i*513-512):(513*i)] <- mcmc$fpsd.s05
 }
-save(mean_vnpc, file='PSD_P05_imodel1_n1024_VNPC.RData')
+save(p05_vnpc, file='PSD_P05_imodel1_n1024_VNPC.RData')
 
 
 
@@ -1076,7 +1075,7 @@ for (i in 1:1000) {
   load(name)
   p95_vnpc[, , (i*513-512):(513*i)] <- mcmc$fpsd.s95
 }
-save(mean_vnpc, file='PSD_P95_imodel1_n1024_VNPC.RData')
+save(p95_vnpc, file='PSD_P95_imodel1_n1024_VNPC.RData')
 
 
 
@@ -1086,7 +1085,7 @@ for (i in 1:1000) {
   load(name)
   u05_vnpc[, , (i*513-512):(513*i)] <- mcmc$fpsd.uuci05
 }
-save(mean_vnpc, file='PSD_U05_imodel1_n1024_VNPC.RData')
+save(u05_vnpc, file='PSD_U05_imodel1_n1024_VNPC.RData')
 
 
 
@@ -1096,7 +1095,7 @@ for (i in 1:1000) {
   load(name)
   u95_vnpc[, , (i*513-512):(513*i)] <- mcmc$fpsd.uuci95
 }
-save(mean_vnpc, file='PSD_U95_imodel1_n1024_VNPC.RData')
+save(u95_vnpc, file='PSD_U95_imodel1_n1024_VNPC.RData')
 
 
 
@@ -1132,7 +1131,7 @@ for (i in 1:1000) {
   load(name)
   p05_vnpc[, , (i*513-512):(513*i)] <- mcmc$fpsd.s05
 }
-save(mean_vnpc, file='PSD_P05_imodel2_n1024_VNPC.RData')
+save(p05_vnpc, file='PSD_P05_imodel2_n1024_VNPC.RData')
 
 
 
@@ -1142,7 +1141,7 @@ for (i in 1:1000) {
   load(name)
   p95_vnpc[, , (i*513-512):(513*i)] <- mcmc$fpsd.s95
 }
-save(mean_vnpc, file='PSD_P95_imodel2_n1024_VNPC.RData')
+save(p95_vnpc, file='PSD_P95_imodel2_n1024_VNPC.RData')
 
 
 
@@ -1152,7 +1151,7 @@ for (i in 1:1000) {
   load(name)
   u05_vnpc[, , (i*513-512):(513*i)] <- mcmc$fpsd.uuci05
 }
-save(mean_vnpc, file='PSD_U05_imodel2_n1024_VNPC.RData')
+save(u05_vnpc, file='PSD_U05_imodel2_n1024_VNPC.RData')
 
 
 
@@ -1162,7 +1161,14 @@ for (i in 1:1000) {
   load(name)
   u95_vnpc[, , (i*513-512):(513*i)] <- mcmc$fpsd.uuci95
 }
-save(mean_vnpc, file='PSD_U95_imodel2_n1024_VNPC.RData')
+save(u95_vnpc, file='PSD_U95_imodel2_n1024_VNPC.RData')
+
+
+
+
+
+
+
 
 
 
