@@ -35,6 +35,11 @@ for (i in 1:1000){
 }
 
 
+wid05_med <- apply(u05_vnpc, c(1,2), median)
+wid95_med <- apply(u95_vnpc, c(1,2), median)
+wid95_med - wid05_med
+
+
 
 #-----------------VNP_256_VAR2---------------------------------#
 
@@ -61,6 +66,12 @@ for (i in 1:1000){
 }
 
 
+median(Re(u95_vnp[1,1,]))-median(Re(u05_vnp[1,1,]))
+median(Re(u95_vnp[1,2,]))-median(Re(u05_vnp[1,2,]))
+median(Im(u95_vnp[2,1,]))-median(Im(u05_vnp[2,1,]))
+median(Re(u95_vnp[2,2,]))-median(Re(u05_vnp[2,2,]))
+
+
 
 #-----------------VAR_256_VAR2---------------------------------#
 
@@ -85,6 +96,15 @@ L2_var <- rep(NA, 1000)
 for (i in 1:1000){
   L2_var[i] <- sqrt(mean(N2_var[(128*i-127):(128*i)]))
 }
+
+
+
+median(Re(u95_var[1,1,]))-median(Re(u05_var[1,1,]))
+median(Re(u95_var[1,2,]))-median(Re(u05_var[1,2,]))
+median(Im(u95_var[2,1,]))-median(Im(u05_var[2,1,]))
+median(Re(u95_var[2,2,]))-median(Re(u05_var[2,2,]))
+
+
 
 out_256_var2 <- list(L1_vnpc=Re(mean(L1_vnpc)),
                 L1_vnp=Re(mean(L1_vnp)),
@@ -130,6 +150,11 @@ L2_vnpc <- rep(NA, 1000)
 for (i in 1:1000){
   L2_vnpc[i] <- sqrt(mean(N2_vnpc[(256*i-255):(256*i)]))
 }
+
+
+wid05_med <- apply(u05_vnpc, c(1,2), median)
+wid95_med <- apply(u95_vnpc, c(1,2), median)
+wid95_med - wid05_med
 
 
 
@@ -184,6 +209,16 @@ for (i in 1:1000){
 }
 
 
+
+
+median(Re(u95_var[1,1,]))-median(Re(u05_var[1,1,]))
+median(Re(u95_var[1,2,]))-median(Re(u05_var[1,2,]))
+median(Im(u95_var[2,1,]))-median(Im(u05_var[2,1,]))
+median(Re(u95_var[2,2,]))-median(Re(u05_var[2,2,]))
+
+
+
+
 out_512_var2 <- list(L1_vnpc=Re(mean(L1_vnpc)),
                      L1_vnp=Re(mean(L1_vnp)),
                      L1_var=Re(mean(L1_var)),
@@ -229,6 +264,11 @@ L2_vnpc <- rep(NA, 1000)
 for (i in 1:1000){
   L2_vnpc[i] <- sqrt(mean(N2_vnpc[(512*i-511):(512*i)]))
 }
+
+
+wid05_med <- apply(u05_vnpc, c(1,2), median)
+wid95_med <- apply(u95_vnpc, c(1,2), median)
+wid95_med - wid05_med
 
 
 
@@ -282,6 +322,15 @@ for (i in 1:1000){
   L2_var[i] <- sqrt(mean(N2_var[(512*i-511):(512*i)]))
 }
 
+
+
+median(Re(u95_var[1,1,]))-median(Re(u05_var[1,1,]))
+median(Re(u95_var[1,2,]))-median(Re(u05_var[1,2,]))
+median(Im(u95_var[2,1,]))-median(Im(u05_var[2,1,]))
+median(Re(u95_var[2,2,]))-median(Re(u05_var[2,2,]))
+
+
+
 out_1024_var2 <- list(L1_vnpc=Re(mean(L1_vnpc)),
                      L1_vnp=Re(mean(L1_vnp)),
                      L1_var=Re(mean(L1_var)),
@@ -305,24 +354,21 @@ save(out_var2, file='VAR2.RData')
 
 
 
-
-
-
-
-
-
-
 #-----------------------------VMA1------------------------------------------------#
 
 #---------------------------256_VMA1------------------------------#
 
 #-----------------------VNPC_256_VMA1-----------------------#
 
+
 psd_256 <- psd_varma(1:129*2*pi/256, 
+                     ar=matrix(nrow = 2, ncol = 0), 
                      ma=rbind(c(-.75, .5), c(.5, .75)),
-                     Sigma=matrix(data=c(1, .5, .5, 1), nrow=2, ncol=2))
+                     Sigma=cbind(c(1,.5),c(0.5,1)))
 psd_256_m <- array(NA, c(2, 2, 129*1000))
 psd_256_m[,,] <- psd_256
+
+
 med_vnpc <- beyondWhittle:::complexValuedPsd(med_vnpc)
 N1_vnpc <- rep(NA, 129*1000)
 for(i in 1:(129*1000)){
@@ -345,6 +391,11 @@ L2_vnpc <- rep(NA, 1000)
 for (i in 1:1000){
   L2_vnpc[i] <- sqrt(mean(N2_vnpc[(128*i-127):(128*i)]))
 }
+
+
+wid05_med <- apply(u05_vnpc, c(1,2), median)
+wid95_med <- apply(u95_vnpc, c(1,2), median)
+wid95_med - wid05_med
 
 
 
@@ -373,6 +424,12 @@ for (i in 1:1000){
 }
 
 
+median(Re(u95_vnp[1,1,]))-median(Re(u05_vnp[1,1,]))
+median(Re(u95_vnp[1,2,]))-median(Re(u05_vnp[1,2,]))
+median(Im(u95_vnp[2,1,]))-median(Im(u05_vnp[2,1,]))
+median(Re(u95_vnp[2,2,]))-median(Re(u05_vnp[2,2,]))
+
+
 
 #-----------------VAR_256_VMA1---------------------------------#
 
@@ -398,7 +455,16 @@ for (i in 1:1000){
   L2_var[i] <- sqrt(mean(N2_var[(128*i-127):(128*i)]))
 }
 
-out_256_vma1 <- list(L1_vnpc=Re(mean(L1_vnpc)),
+
+
+median(Re(u95_var[1,1,]))-median(Re(u05_var[1,1,]))
+median(Re(u95_var[1,2,]))-median(Re(u05_var[1,2,]))
+median(Im(u95_var[2,1,]))-median(Im(u05_var[2,1,]))
+median(Re(u95_var[2,2,]))-median(Re(u05_var[2,2,]))
+
+
+
+out_256_var2 <- list(L1_vnpc=Re(mean(L1_vnpc)),
                      L1_vnp=Re(mean(L1_vnp)),
                      L1_var=Re(mean(L1_var)),
                      L2_vnpc=Re(mean(L2_vnpc)),
@@ -416,10 +482,12 @@ out_256_vma1 <- list(L1_vnpc=Re(mean(L1_vnpc)),
 #-----------------VNPC_512_VMA1---------------------------------#
 
 psd_512 <- psd_varma(1:257*2*pi/512, 
+                     ar=matrix(nrow = 2, ncol = 0), 
                      ma=rbind(c(-.75, .5), c(.5, .75)),
-                     Sigma=matrix(data=c(1, .5, .5, 1), nrow=2, ncol=2))
+                     Sigma=cbind(c(1,.5),c(0.5,1)))
 psd_512_m <- array(NA, c(2, 2, 257*1000))
 psd_512_m[,,] <- psd_512
+
 med_vnpc <- beyondWhittle:::complexValuedPsd(med_vnpc)
 N1_vnpc <- rep(NA, 257*1000)
 for(i in 1:(257*1000)){
@@ -442,6 +510,11 @@ L2_vnpc <- rep(NA, 1000)
 for (i in 1:1000){
   L2_vnpc[i] <- sqrt(mean(N2_vnpc[(256*i-255):(256*i)]))
 }
+
+
+wid05_med <- apply(u05_vnpc, c(1,2), median)
+wid95_med <- apply(u95_vnpc, c(1,2), median)
+wid95_med - wid05_med
 
 
 
@@ -496,7 +569,17 @@ for (i in 1:1000){
 }
 
 
-out_512_vma1 <- list(L1_vnpc=Re(mean(L1_vnpc)),
+
+
+median(Re(u95_var[1,1,]))-median(Re(u05_var[1,1,]))
+median(Re(u95_var[1,2,]))-median(Re(u05_var[1,2,]))
+median(Im(u95_var[2,1,]))-median(Im(u05_var[2,1,]))
+median(Re(u95_var[2,2,]))-median(Re(u05_var[2,2,]))
+
+
+
+
+out_512_var2 <- list(L1_vnpc=Re(mean(L1_vnpc)),
                      L1_vnp=Re(mean(L1_vnp)),
                      L1_var=Re(mean(L1_var)),
                      L2_vnpc=Re(mean(L2_vnpc)),
@@ -515,10 +598,12 @@ out_512_vma1 <- list(L1_vnpc=Re(mean(L1_vnpc)),
 #-----------------VNPC_1024_VMA1---------------------------------#
 
 psd_1024 <- psd_varma(1:513*2*pi/1024, 
+                      ar=matrix(nrow = 2, ncol = 0), 
                       ma=rbind(c(-.75, .5), c(.5, .75)),
-                      Sigma=matrix(data=c(1, .5, .5, 1), nrow=2, ncol=2))
+                      Sigma=cbind(c(1,.5),c(0.5,1)))
 psd_1024_m <- array(NA, c(2, 2, 513*1000))
 psd_1024_m[,,] <- psd_1024
+
 med_vnpc <- beyondWhittle:::complexValuedPsd(med_vnpc)
 N1_vnpc <- rep(NA, 513*1000)
 for(i in 1:(513*1000)){
@@ -541,6 +626,11 @@ L2_vnpc <- rep(NA, 1000)
 for (i in 1:1000){
   L2_vnpc[i] <- sqrt(mean(N2_vnpc[(512*i-511):(512*i)]))
 }
+
+
+wid05_med <- apply(u05_vnpc, c(1,2), median)
+wid95_med <- apply(u95_vnpc, c(1,2), median)
+wid95_med - wid05_med
 
 
 
@@ -594,12 +684,19 @@ for (i in 1:1000){
   L2_var[i] <- sqrt(mean(N2_var[(512*i-511):(512*i)]))
 }
 
-out_1024_vma1 <- list(L1_vnpc=Re(mean(L1_vnpc)),
+
+
+median(Re(u95_var[1,1,]))-median(Re(u05_var[1,1,]))
+median(Re(u95_var[1,2,]))-median(Re(u05_var[1,2,]))
+median(Im(u95_var[2,1,]))-median(Im(u05_var[2,1,]))
+median(Re(u95_var[2,2,]))-median(Re(u05_var[2,2,]))
+
+
+
+out_1024_var2 <- list(L1_vnpc=Re(mean(L1_vnpc)),
                       L1_vnp=Re(mean(L1_vnp)),
                       L1_var=Re(mean(L1_var)),
                       L2_vnpc=Re(mean(L2_vnpc)),
                       L2_vnp=Re(mean(L2_vnp)),
                       L2_var=Re(mean(L2_var)))
 
-out_vma1 <- list(n256=out_256_vma1, n512=out_512_vma1, n1024=out_1024_vma1)
-save(out_vma1, file='VMA1.RData')
