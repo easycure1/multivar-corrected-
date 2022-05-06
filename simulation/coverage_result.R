@@ -15,7 +15,7 @@ realValuedPsd <- function(x){
 #---------------------------VAR2_256---------------------------------#
 
 
-psd_256 <- psd_varma(1:129*2*pi/256, 
+psd_256 <- psd_varma(0:128*2*pi/256, 
                      ar=rbind(c(.5, 0, 0, 0), c(0, -.3, 0, -.5)),
                      Sigma=matrix(data=c(1, .9, .9, 1), nrow=2, ncol=2))
 
@@ -102,7 +102,7 @@ n_var/1000
 #---------------------------VAR2_512---------------------------------#
 
 
-psd_512 <- psd_varma(1:257*2*pi/512, 
+psd_512 <- psd_varma(0:256*2*pi/512, 
                      ar=rbind(c(.5, 0, 0, 0), c(0, -.3, 0, -.5)),
                      Sigma=matrix(data=c(1, .9, .9, 1), nrow=2, ncol=2))
 
@@ -172,7 +172,7 @@ for (i in 1:1000) {
     u95_real[,,j] <- realValuedPsd(mcmc$psd.u95[,,j])
   }
   
-  if (all(u05_real[1,1,]<=psd_512_real[1,1,] & u95_real>=psd_512_real[1,1,])){
+  if (all(u05_real<=psd_512_real & u95_real>=psd_512_real)){
     n_var <- n_var+1
   } 
   else{
@@ -180,15 +180,3 @@ for (i in 1:1000) {
   }
 }
 n_var/1000
-
-
-
-
-
-
-
-
-
-
-
-
