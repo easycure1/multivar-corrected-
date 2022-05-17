@@ -255,12 +255,17 @@ gibbs_m_nuisance <- function(data,
         sigma.fit <- a1$var.pred          ##
         param__beta[,1] <- c(a1$ar)               ##  
         V_beta_inv <- solve(V_beta)               ##
+        param__Sigma[,,1] <- sigma.fit            ##
+        Y_mat <- apply(noise, 2, tail, n-var.order) ##
+        Y_vec <- c(t(Y_mat))                        ## mimic var - Yixuan
+        ZZ <- VAR_regressor_matrix(noise, var.order)##
       } else {                                    ##
         param__Sigma[,,1] <- var(noise)           ##
         V_beta_inv <- matrix(0, 0, 0)             ##
       }                                           ##
       param__phi[,,1] <- phiFromBeta_normalInverseWishart(param__beta[,1], d, var.order)
-      f_param <- psd_varma(lambda, ar=param__phi[,,1], sigma=sigma.fit) ##TO DO: change argument sigma to Sigma in psd_varma() - Yixuan 
+      param__Sigma_inv[,,1] <- solve(param__Sigma[,,1])
+      f_param <- psd_varma(lambda, ar=param__phi[,,1], sigma=param__Sigma[,,1]) ##TO DO: change argument sigma to Sigma in psd_varma() - Yixuan 
       f_param_half <- chol_cube(f_param$psd, excludeBoundary=F) ## Yixuan
       
       
@@ -310,19 +315,10 @@ gibbs_m_nuisance <- function(data,
       cat("iteration ", i, "/", Ntotal, "\n", sep="")
     }
     
-    noise <- get_noise(data, theta[,i])  # noise = data - signal
     FZ <- mdft(noise)  # Frequency domain
-    Y_mat <- apply(noise, 2, tail, n-var.order) ##
-    Y_vec <- c(t(Y_mat))                        ## mimic var - Yixuan
-    ZZ <- VAR_regressor_matrix(noise, var.order)##
+    
 
     if (i==1) {
-      if (p>0){
-        param__Sigma[,,i] <- sigma.fit
-      } else {
-        param__Sigma[,,i] <- var(noise)
-      }
-      param__Sigma_inv[,,i] <- solve(param__Sigma[,,i])
       ##
       ## f.store: previous lpost value to save some computation time in MH steps
       ## Needs to be updated for every proposal acceptance
@@ -957,4 +953,5 @@ gibbs_m_nuisance <- function(data,
               theta=theta))#,
               #data_forecast=data_forecast))
 }
+
 
