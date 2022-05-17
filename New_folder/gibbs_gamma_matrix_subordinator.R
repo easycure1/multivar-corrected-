@@ -778,37 +778,39 @@ gibbs_m_nuisance <- function(data,
     ##
     ## Step 7: Full conditional of param_Sigma_inv
     ##
-    nu_Sigma_post <- n - p + nu_Sigma
-    S_Sigma_post <- S_Sigma
-    for (i in 1:(n-p)) {
+    
+    if (corrected && toggle) {
+      nu_Sigma_post <- n - p + nu_Sigma
+      S_Sigma_post <- S_Sigma
+      for (i in 1:(n-p)) {
       Z_t <- ZZ[((i-1)*d+1):(i*d),]
       Y_t <- Y_vec[((i-1)*d+1):(i*d)]
       ymZb <- Y_t - Z_t %*% param__beta[,i+1]
       S_Sigma_post <- S_Sigma_post + ymZb %*% t(ymZb)
-    }
-    S_Sigma_post_inv <- solve(S_Sigma_post)
-    param__Sigma_inv[,,i+1] <- rWishart(n=1, df=nu_Sigma_post, Sigma=S_Sigma_post)[,,1]
-    param__Sigma_tmp <- solve(param__Sigma_inv[,,i+1])
-    param__Sigma[,,i+1] <- param__Sigma_tmp
-    f.store <- lpost_matrixGamma(omega=omega,
-                                 FZ=FZ_star, # note
-                                 r=r[,i+1],
-                                 U=U[,,,i+1],
-                                 Z=Z[,i+1],
-                                 k=k[,i+1],
-                                 C_alpha=C_alpha,
-                                 omega_fun=omega_fun,
-                                 k.theta=k.theta,
-                                 db.list=db.list,
-                                 eta=eta,
-                                 Sigma_fun=Sigma_fun,
-                                 corrected=corrected,
-                                 phi=phi.fit,
-                                 sigma_ar=param__Sigma[,,i+1],
-                                 prior.q=prior.q,
-                                 prior.cholesky=prior.cholesky,
-                                 excludeBoundary=T, # note
-                                 verbose=verbose)
+      }
+      S_Sigma_post_inv <- solve(S_Sigma_post)
+      param__Sigma_inv[,,i+1] <- rWishart(n=1, df=nu_Sigma_post, Sigma=S_Sigma_post)[,,1]
+      param__Sigma_tmp <- solve(param__Sigma_inv[,,i+1])
+      param__Sigma[,,i+1] <- param__Sigma_tmp
+      f.store <- lpost_matrixGamma(omega=omega,
+                                   FZ=FZ_star, # note
+                                   r=r[,i+1],
+                                   U=U[,,,i+1],
+                                   Z=Z[,i+1],
+                                   k=k[,i+1],
+                                   C_alpha=C_alpha,
+                                   omega_fun=omega_fun,
+                                   k.theta=k.theta,
+                                   db.list=db.list,
+                                   eta=eta,
+                                   Sigma_fun=Sigma_fun,
+                                   corrected=corrected,
+                                   phi=phi.fit,
+                                   sigma_ar=param__Sigma[,,i+1],
+                                   prior.q=prior.q,
+                                   prior.cholesky=prior.cholesky,
+                                   excludeBoundary=T, # note
+                                   verbose=verbose)
     
     
     ##
