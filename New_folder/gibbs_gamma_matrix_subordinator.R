@@ -24,7 +24,7 @@ gibbs_m_nuisance <- function(data,
                              model_params) {
   
   warning("Using conjugate sampling for theta. TODO: Get that consistent with MH!!")
-
+  
   # --- STUFF TODO ----------------------------
   # -------------------------------------------
   # + implement pure parametric VAR nuisance model
@@ -79,7 +79,7 @@ gibbs_m_nuisance <- function(data,
   adaption.batchSize <- mcmc_params$adaption.batchSize
   stopifnot(!is.null(mcmc_params$adaption.targetAcceptanceRate)); stopifnot(mcmc_params$adaption.targetAcceptanceRate>0 && mcmc_params$adaption.targetAcceptanceRate<1)
   adaption.targetAcceptanceRate <- mcmc_params$adaption.targetAcceptanceRate
-
+  
   # AGAMMA PRIOR PAREMETERS
   stopifnot(!is.null(prior_params$prior.cholesky))
   prior.cholesky <- prior_params$prior.cholesky
@@ -166,7 +166,7 @@ gibbs_m_nuisance <- function(data,
   } else {
     boundaryFrequecies <- 1
   }
-
+  
   omega <- omegaFreq(n)
   N <- length(omega)
   lambda <- pi * omega
@@ -249,7 +249,7 @@ gibbs_m_nuisance <- function(data,
       #sigma.fit <- a1$var.pred
       #Y_mat <- apply(noise, 2, tail, n-var.order) ##
       #Y_vec <- c(t(Y_mat))                        ## mimic var - Yixuan
-      ZZ <- VAR_regressor_matrix(noise, var.order)##
+      #ZZ <- VAR_regressor_matrix(noise, var.order)##
       if (var.order>0){                           ##
         a1 <- ar(data, order.max=var.order, aic=F)##
         sigma.fit <- a1$var.pred          ##
@@ -317,7 +317,7 @@ gibbs_m_nuisance <- function(data,
     
     FZ <- mdft(noise)  # Frequency domain
     
-
+    
     if (i==1) {
       ##
       ## f.store: previous lpost value to save some computation time in MH steps
@@ -342,6 +342,7 @@ gibbs_m_nuisance <- function(data,
                                    prior.cholesky=prior.cholesky,
                                    excludeBoundary=T, # note
                                    verbose=verbose)
+      #f.1 <- f.store
       
       lpostTrace[1] <- f.store + lprior_theta(theta[,1])
       lpriorTrace[1] <- lprior_matrixGamma(r=r[,1],
@@ -606,7 +607,7 @@ gibbs_m_nuisance <- function(data,
           param__beta_old <- param__beta_old + t(Z_t) %*% param__Sigma_inv[,,i] %*% Y_t ##  mimic var - Yixuan
         } ##
         V_beta_post <- solve(V_beta_post_inv) ##
-        param__beta.star <- V_beta_post %*% param_beta_old ##
+        param__beta.star <- V_beta_post %*% param__beta_old ##
         param__beta.star <- MASS::mvrnorm(1, mu=param__beta.star, Sigma=V_beta_post) ##
         param__phi.star <- phiFromBeta_normalInverseWishart(param__beta.star, d, var.order) ##
         f_param.star <- psd_varma(lambda, param__phi.star, sigma=param__Sigma[,,i]) ## Note f_param.star is not psd_varma()$psd - Yixuan
@@ -619,13 +620,13 @@ gibbs_m_nuisance <- function(data,
         
         # plotMPsd(f_param.star, main="proposed")
         rejectedPhi <- F
-        if (any(apply(f_param.star, 3, hasEigenValueSmallerZero, TOL=NUMERICAL_THRESH))) { # stay positive definite
+        if (any(apply(f_param.star$psd, 3, hasEigenValueSmallerZero, TOL=NUMERICAL_THRESH))) { # stay positive definite
           if (verbose) print_warn("Discarding f_param proposal, because of positive definiteness")
           param__beta[,i+1] <- param__beta[,i]
           param__phi[,,i+1] <- param__phi[,,i]
           rejectedPhi <- T
         } 
-        if (numericalUnstable(f_param.star, excludeBoundary=F, TOL=NUMERICAL_THRESH)) { # stay numerically stable
+        if (numericalUnstable(f_param.star$psd, excludeBoundary=F, TOL=NUMERICAL_THRESH)) { # stay numerically stable
           if (verbose) print_warn("Discarding f_param proposal, because of numerical instablity")
           param__beta[,i+1] <- param__beta[,i]
           param__phi[,,i+1] <- param__phi[,,i]
@@ -713,7 +714,7 @@ gibbs_m_nuisance <- function(data,
                                         Sigma_fun=Sigma_fun,
                                         corrected=corrected,
                                         phi=phi.fit,
-                                        sigma_ar=sigma.fit,
+                                        sigma_ar=param__Sigma[,,i],
                                         prior.q=prior.q,
                                         prior.cholesky=prior.cholesky,
                                         excludeBoundary=F, # note
@@ -732,7 +733,7 @@ gibbs_m_nuisance <- function(data,
                                    Sigma_fun=Sigma_fun,
                                    corrected=corrected,
                                    phi=phi.fit,
-                                   sigma_ar=sigma.fit,
+                                   sigma_ar=param__Sigma[,,i],
                                    prior.q=prior.q,
                                    prior.cholesky=prior.cholesky,
                                    excludeBoundary=F, # note
@@ -765,13 +766,16 @@ gibbs_m_nuisance <- function(data,
                                      excludeBoundary=T, # note
                                      verbose=verbose)
         noise <- noise_star
-        Y_mat <- apply(noise, 2, tail, n-p)
+        FZ <- FZ_star
+        Y_mat <- apply(noise, 2, tail, n-var.order)
         Y_vec <- c(t(Y_mat))
-        ZZ <- VAR_regressor_matrix(noise, p)
+        ZZ <- VAR_regressor_matrix(noise, var.order)
       } else {
         theta[,i+1] <- theta[,i]
       }
     }
+    
+    
     
     
     
@@ -780,20 +784,20 @@ gibbs_m_nuisance <- function(data,
     ##
     
     if (corrected && toggle) {
-      nu_Sigma_post <- n - p + nu_Sigma
+      nu_Sigma_post <- n - var.order + nu_Sigma
       S_Sigma_post <- S_Sigma
-      for (i in 1:(n-p)) {
-      Z_t <- ZZ[((i-1)*d+1):(i*d),]
-      Y_t <- Y_vec[((i-1)*d+1):(i*d)]
-      ymZb <- Y_t - Z_t %*% param__beta[,i+1]
-      S_Sigma_post <- S_Sigma_post + ymZb %*% t(ymZb)
+      for (tt in 1:(n-var.order)) {
+        Z_t <- ZZ[((tt-1)*d+1):(tt*d),]
+        Y_t <- Y_vec[((tt-1)*d+1):(tt*d)]
+        ymZb <- Y_t - Z_t %*% param__beta[,i+1]
+        S_Sigma_post <- S_Sigma_post + ymZb %*% t(ymZb)
       }
       S_Sigma_post_inv <- solve(S_Sigma_post)
       param__Sigma_inv[,,i+1] <- rWishart(n=1, df=nu_Sigma_post, Sigma=S_Sigma_post)[,,1]
       param__Sigma_tmp <- solve(param__Sigma_inv[,,i+1])
       param__Sigma[,,i+1] <- param__Sigma_tmp
       f.store <- lpost_matrixGamma(omega=omega,
-                                   FZ=FZ_star, # note
+                                   FZ=FZ, # note
                                    r=r[,i+1],
                                    U=U[,,,i+1],
                                    Z=Z[,i+1],
@@ -811,149 +815,150 @@ gibbs_m_nuisance <- function(data,
                                    prior.cholesky=prior.cholesky,
                                    excludeBoundary=T, # note
                                    verbose=verbose)
-    
-    
-    ##
-    ## Final step: Update some traces
-    ##
-    #print("Step final")
-    lpostTrace[i+1] <- f.store + lprior_theta(theta[,i+1])
-    lpriorTrace[i+1] <- lprior_matrixGamma(r=r[,i+1],
-                                           U=U[,,,i+1],
-                                           Z=Z[,i+1],
-                                           k=k[,i+1],
-                                           C_alpha=C_alpha,
-                                           omega_fun=omega_fun,
-                                           k.theta=k.theta,
-                                           eta=eta,
-                                           Sigma_fun=Sigma_fun,
-                                           phi=phi.fit,
-                                           verbose=verbose) +
-      lprior_theta(theta[,i+1])
-    llikeTrace[i+1] <- lpostTrace[i+1] - lpriorTrace[i+1]
-    
-  } # END MCMC LOOP
-  
-  ##
-  ## Post processing
-  ##
-  #print("Postprocessing results ...")
-  keep <- seq(burnin+1, Ntotal, by=thin)
-  
-  if (prior.cholesky) {
-    k <- k[,keep]
-  } else {
-    k <- array(data=k[,keep], dim=c(1, length(keep))) 
-  }
-  r <- r[,keep]
-  Z <- Z[,keep]
-  U <- U[,,,keep]
-  U__phi <- U__phi[,,keep]
-  if (corrected && toggle) {
-    param__beta <- param__beta[,keep]
-    param__phi <- param__phi[,,keep]
-  } else {
-    param__beta <- NULL
-    param__phi <- NULL
-  }
-  theta <- theta[,keep,drop=F]
-  
-  W <- array(dim=c(d,d,L,length(keep))) # for convenience
-  fpsd.sample <- array(NA, dim=c(d, d, N, length(keep)))
-  
-  # Corrected (not toggled yet)
-  if (corrected && prior.q && (!toggle)) {
-    f_param_half <- chol_cube(psd_varma(lambda, phi.fit$ar, sigma=sigma.fit)$psd, excludeBoundary=F)
-    f_param_half_trans <- trans_cube(f_param_half)
-  }
-  for (isample in 1:length(keep)) {
-    if (corrected && prior.q) {
-      if (toggle) {
-        f_param_half <- chol_cube(psd_varma(lambda, param__phi[,,isample], sigma=sigma.fit)$psd, excludeBoundary=F)
-        f_param_half_trans <- trans_cube(f_param_half)
-      }
-      q_sample <- get_f_matrix(U[,,,isample], r[,isample], Z[,isample], k[,isample], db.list, prior.cholesky)
-      f_sample <- mult_cube(mult_cube(f_param_half, q_sample), f_param_half_trans) # "prior on q=f/f_param"
-    } else {
-      f_sample <- get_f_matrix(U[,,,isample], r[,isample], Z[,isample], k[,isample], db.list, prior.cholesky)
     }
-    fpsd.sample[,,,isample] <- realValuedPsd(f_sample)
+      
+      
+      ##
+      ## Final step: Update some traces
+      ##
+      #print("Step final")
+      lpostTrace[i+1] <- f.store + lprior_theta(theta[,i+1])
+      lpriorTrace[i+1] <- lprior_matrixGamma(r=r[,i+1],
+                                             U=U[,,,i+1],
+                                             Z=Z[,i+1],
+                                             k=k[,i+1],
+                                             C_alpha=C_alpha,
+                                             omega_fun=omega_fun,
+                                             k.theta=k.theta,
+                                             eta=eta,
+                                             Sigma_fun=Sigma_fun,
+                                             phi=phi.fit,
+                                             verbose=verbose) +
+        lprior_theta(theta[,i+1])
+      llikeTrace[i+1] <- lpostTrace[i+1] - lpriorTrace[i+1]
+      
+    } # END MCMC LOOP
+    
+    ##
+    ## Post processing
+    ##
+    #print("Postprocessing results ...")
+    keep <- seq(burnin+1, Ntotal, by=thin)
+    
+    if (prior.cholesky) {
+      k <- k[,keep]
+    } else {
+      k <- array(data=k[,keep], dim=c(1, length(keep))) 
+    }
+    r <- r[,keep]
+    Z <- Z[,keep]
+    U <- U[,,,keep]
+    U__phi <- U__phi[,,keep]
+    if (corrected && toggle) {
+      param__beta <- param__beta[,keep]
+      param__phi <- param__phi[,,keep]
+    } else {
+      param__beta <- NULL
+      param__phi <- NULL
+    }
+    theta <- theta[,keep,drop=F]
+    
+    W <- array(dim=c(d,d,L,length(keep))) # for convenience
+    fpsd.sample <- array(NA, dim=c(d, d, N, length(keep)))
+    
+    # Corrected (not toggled yet)
+    if (corrected && prior.q && (!toggle)) {
+      f_param_half <- chol_cube(psd_varma(lambda, phi.fit$ar, sigma=sigma.fit)$psd, excludeBoundary=F)
+      f_param_half_trans <- trans_cube(f_param_half)
+    }
+    for (isample in 1:length(keep)) {
+      if (corrected && prior.q) {
+        if (toggle) {
+          f_param_half <- chol_cube(psd_varma(lambda, param__phi[,,isample], sigma=param__Sigma[,,isample])$psd, excludeBoundary=F)
+          f_param_half_trans <- trans_cube(f_param_half)
+        }
+        q_sample <- get_f_matrix(U[,,,isample], r[,isample], Z[,isample], k[,isample], db.list, prior.cholesky)
+        f_sample <- mult_cube(mult_cube(f_param_half, q_sample), f_param_half_trans) # "prior on q=f/f_param"
+      } else {
+        f_sample <- get_f_matrix(U[,,,isample], r[,isample], Z[,isample], k[,isample], db.list, prior.cholesky)
+      }
+      fpsd.sample[,,,isample] <- realValuedPsd(f_sample)
+    }
+    fpsd.s <- apply(fpsd.sample, c(1,2,3), median)
+    fpsd.mean <- apply(fpsd.sample, c(1,2,3), mean)
+    # pointwise 90%
+    fpsd.s05 <- apply(fpsd.sample, c(1,2,3), quantile, 0.05)
+    fpsd.s95 <- apply(fpsd.sample, c(1,2,3), quantile, 0.95)
+    # # pointwise 95%
+    # fpsd.s025 <- apply(fpsd.sample, c(1,2,3), quantile, 0.025)
+    # fpsd.s975 <- apply(fpsd.sample, c(1,2,3), quantile, 0.975)
+    # # pointwise 99%
+    # fpsd.s005 <- apply(fpsd.sample, c(1,2,3), quantile, 0.005)
+    # fpsd.s995 <- apply(fpsd.sample, c(1,2,3), quantile, 0.995)
+    
+    alpha_uci <- 0.1 # same as in 1D
+    uci_tmp <- uci_matrix(fpsd.sample, alpha=alpha_uci)
+    fpsd.uci05 <- uci_tmp$fpsd.uci05
+    fpsd.uci95 <- uci_tmp$fpsd.uci95
+    uuci_tmp <- uci_matrix(fpsd.sample, alpha=alpha_uci, uniform_among_components=T)
+    fpsd.uuci05 <- uuci_tmp$fpsd.uci05
+    fpsd.uuci95 <- uuci_tmp$fpsd.uci95
+    
+    # # Construct forecasts
+    # N_FORECAST <- 5
+    # rm("db.list") # clear some memory
+    # db.list_forecast <- dbList(n+N_FORECAST, kmax, normalized=normalizedBernsteins, bernstein_l, bernstein_r) 
+    # N_MCMC_IT <- length(keep)
+    # data_forecast <- array(data=NA, dim=c(N_FORECAST, d, N_MCMC_IT))
+    # for (isample in 1:N_MCMC_IT) {
+    #   if (!(i%%print_interval)) {
+    #     cat("forecasting ", isample, "/", N_MCMC_IT, "\n", sep="")
+    #   }
+    #   noise <- get_noise(data, theta[,isample])
+    #   if (corrected && prior.q) {
+    #     stop("TODO: Include forecast to corrected branch")
+    #   }
+    #   else {
+    #     f_forecast <- get_f_matrix(U[,,,isample], 
+    #                                r[,isample], 
+    #                                Z[,isample], 
+    #                                k[,isample], 
+    #                                db.list_forecast, 
+    #                                prior.cholesky)
+    #   }
+    #   noise_forecast <- vnp_forecast(noise, f_forecast, N_FORECAST)
+    #   noise_all <- rbind(noise, noise_forecast)
+    #   data_forecast[,,isample] <- get_data(noise_all, theta[,isample])[-(1:nrow(noise)),]
+    # }
+    
+    ##
+    ## Return stuff
+    ##
+    return(list(data=data,
+                k=k,
+                r=r,
+                Z=Z,
+                U=U,
+                U__phi=U__phi,
+                W=W,
+                fpsd.s=fpsd.s,
+                fpsd.mean=fpsd.mean,
+                fpsd.s05=fpsd.s05,
+                fpsd.s95=fpsd.s95,
+                # fpsd.s025=fpsd.s025,
+                # fpsd.s975=fpsd.s975,
+                # fpsd.s005=fpsd.s005,
+                # fpsd.s995=fpsd.s995,
+                # fpsd.uci05=fpsd.uci05,
+                # fpsd.uci95=fpsd.uci95,
+                fpsd.uuci05=fpsd.uuci05,
+                fpsd.uuci95=fpsd.uuci95,
+                llikeTrace=llikeTrace,
+                lpostTrace=lpostTrace, # log posterior: don't discard burnin to investigate convergence
+                lpriorTrace=lpriorTrace,
+                param__phi=param__phi,
+                theta=theta))#,
+    #data_forecast=data_forecast))
   }
-  fpsd.s <- apply(fpsd.sample, c(1,2,3), median)
-  fpsd.mean <- apply(fpsd.sample, c(1,2,3), mean)
-  # pointwise 90%
-  fpsd.s05 <- apply(fpsd.sample, c(1,2,3), quantile, 0.05)
-  fpsd.s95 <- apply(fpsd.sample, c(1,2,3), quantile, 0.95)
-  # # pointwise 95%
-  # fpsd.s025 <- apply(fpsd.sample, c(1,2,3), quantile, 0.025)
-  # fpsd.s975 <- apply(fpsd.sample, c(1,2,3), quantile, 0.975)
-  # # pointwise 99%
-  # fpsd.s005 <- apply(fpsd.sample, c(1,2,3), quantile, 0.005)
-  # fpsd.s995 <- apply(fpsd.sample, c(1,2,3), quantile, 0.995)
-  
-  alpha_uci <- 0.1 # same as in 1D
-  uci_tmp <- uci_matrix(fpsd.sample, alpha=alpha_uci)
-  fpsd.uci05 <- uci_tmp$fpsd.uci05
-  fpsd.uci95 <- uci_tmp$fpsd.uci95
-  uuci_tmp <- uci_matrix(fpsd.sample, alpha=alpha_uci, uniform_among_components=T)
-  fpsd.uuci05 <- uuci_tmp$fpsd.uci05
-  fpsd.uuci95 <- uuci_tmp$fpsd.uci95
-  
-  # # Construct forecasts
-  # N_FORECAST <- 5
-  # rm("db.list") # clear some memory
-  # db.list_forecast <- dbList(n+N_FORECAST, kmax, normalized=normalizedBernsteins, bernstein_l, bernstein_r) 
-  # N_MCMC_IT <- length(keep)
-  # data_forecast <- array(data=NA, dim=c(N_FORECAST, d, N_MCMC_IT))
-  # for (isample in 1:N_MCMC_IT) {
-  #   if (!(i%%print_interval)) {
-  #     cat("forecasting ", isample, "/", N_MCMC_IT, "\n", sep="")
-  #   }
-  #   noise <- get_noise(data, theta[,isample])
-  #   if (corrected && prior.q) {
-  #     stop("TODO: Include forecast to corrected branch")
-  #   }
-  #   else {
-  #     f_forecast <- get_f_matrix(U[,,,isample], 
-  #                                r[,isample], 
-  #                                Z[,isample], 
-  #                                k[,isample], 
-  #                                db.list_forecast, 
-  #                                prior.cholesky)
-  #   }
-  #   noise_forecast <- vnp_forecast(noise, f_forecast, N_FORECAST)
-  #   noise_all <- rbind(noise, noise_forecast)
-  #   data_forecast[,,isample] <- get_data(noise_all, theta[,isample])[-(1:nrow(noise)),]
-  # }
-  
-  ##
-  ## Return stuff
-  ##
-  return(list(data=data,
-              k=k,
-              r=r,
-              Z=Z,
-              U=U,
-              U__phi=U__phi,
-              W=W,
-              fpsd.s=fpsd.s,
-              fpsd.mean=fpsd.mean,
-              fpsd.s05=fpsd.s05,
-              fpsd.s95=fpsd.s95,
-              # fpsd.s025=fpsd.s025,
-              # fpsd.s975=fpsd.s975,
-              # fpsd.s005=fpsd.s005,
-              # fpsd.s995=fpsd.s995,
-              # fpsd.uci05=fpsd.uci05,
-              # fpsd.uci95=fpsd.uci95,
-              fpsd.uuci05=fpsd.uuci05,
-              fpsd.uuci95=fpsd.uuci95,
-              llikeTrace=llikeTrace,
-              lpostTrace=lpostTrace, # log posterior: don't discard burnin to investigate convergence
-              lpriorTrace=lpriorTrace,
-              param__phi=param__phi,
-              theta=theta))#,
-              #data_forecast=data_forecast))
-}
 
 
