@@ -315,6 +315,9 @@ gibbs_m_nuisance <- function(data,
       cat("iteration ", i, "/", Ntotal, "\n", sep="")
     }
     
+    if (i!=1) {
+      noise <- get_noise(data, theta[,i])
+    }
     FZ <- mdft(noise)  # Frequency domain
     
     
@@ -760,13 +763,13 @@ gibbs_m_nuisance <- function(data,
                                      Sigma_fun=Sigma_fun,
                                      corrected=corrected,
                                      phi=phi.fit,
-                                     sigma_ar=sigma.fit,
+                                     sigma_ar=param__Sigma[,,i],
                                      prior.q=prior.q,
                                      prior.cholesky=prior.cholesky,
                                      excludeBoundary=T, # note
                                      verbose=verbose)
         noise <- noise_star
-        FZ <- FZ_star
+        #FZ <- FZ_star
         Y_mat <- apply(noise, 2, tail, n-var.order)
         Y_vec <- c(t(Y_mat))
         ZZ <- VAR_regressor_matrix(noise, var.order)
@@ -793,7 +796,7 @@ gibbs_m_nuisance <- function(data,
         S_Sigma_post <- S_Sigma_post + ymZb %*% t(ymZb)
       }
       S_Sigma_post_inv <- solve(S_Sigma_post)
-      param__Sigma_inv[,,i+1] <- rWishart(n=1, df=nu_Sigma_post, Sigma=S_Sigma_post)[,,1]
+      param__Sigma_inv[,,i+1] <- rWishart(n=1, df=nu_Sigma_post, Sigma=S_Sigma_post_inv)[,,1]
       param__Sigma_tmp <- solve(param__Sigma_inv[,,i+1])
       param__Sigma[,,i+1] <- param__Sigma_tmp
       f.store <- lpost_matrixGamma(omega=omega,
@@ -857,6 +860,7 @@ gibbs_m_nuisance <- function(data,
     if (corrected && toggle) {
       param__beta <- param__beta[,keep]
       param__phi <- param__phi[,,keep]
+      param__Sigma <- param__Sigma[,,keep]
     } else {
       param__beta <- NULL
       param__phi <- NULL
@@ -865,6 +869,11 @@ gibbs_m_nuisance <- function(data,
     
     W <- array(dim=c(d,d,L,length(keep))) # for convenience
     fpsd.sample <- array(NA, dim=c(d, d, N, length(keep)))
+    
+    # store the coherence
+    comb_t_n <- ncol(combn(d, 2))
+    comb_t <- combn(d, 2)
+    coherence.sample <- array(NA, dim = c(N, comb_t_n, length(keep)))
     
     # Corrected (not toggled yet)
     if (corrected && prior.q && (!toggle)) {
@@ -883,6 +892,15 @@ gibbs_m_nuisance <- function(data,
         f_sample <- get_f_matrix(U[,,,isample], r[,isample], Z[,isample], k[,isample], db.list, prior.cholesky)
       }
       fpsd.sample[,,,isample] <- realValuedPsd(f_sample)
+      for (ipair in 1:comb_t_n){
+        index1 <- comb_t[1, ipair]
+        index2 <- comb_t[2, ipair]
+        f1 <- fpsd.sample[index1, index1,,isample]
+        f2 <- fpsd.sample[index2, index2,,isample]
+        f_Re <- fpsd.sample[index1, index2,,isample]
+        f_Im <- fpsd.sample[index2, index1,,isample]
+        coherence.sample[,ipair, isample] <- sqrt(f_Re^2+f_Im^2)/sqrt(f1*f2)
+      }
     }
     fpsd.s <- apply(fpsd.sample, c(1,2,3), median)
     fpsd.mean <- apply(fpsd.sample, c(1,2,3), mean)
@@ -903,6 +921,12 @@ gibbs_m_nuisance <- function(data,
     uuci_tmp <- uci_matrix(fpsd.sample, alpha=alpha_uci, uniform_among_components=T)
     fpsd.uuci05 <- uuci_tmp$fpsd.uci05
     fpsd.uuci95 <- uuci_tmp$fpsd.uci95
+    
+    #squared coherence (prior squared) (median and 90% pointwise region)
+    coherence.s <- apply(coherence.sample, c(1, 2), median)
+    coherence.s05 <- apply(coherence.sample, c(1, 2), quantile, 0.05)
+    coherence.s95 <- apply(coherence.sample, c(1, 2), quantile, 0.95)
+    
     
     # # Construct forecasts
     # N_FORECAST <- 5
@@ -953,6 +977,9 @@ gibbs_m_nuisance <- function(data,
                 # fpsd.uci95=fpsd.uci95,
                 fpsd.uuci05=fpsd.uuci05,
                 fpsd.uuci95=fpsd.uuci95,
+                coherence.s = coherence.s,
+                coherence.s05 = coherence.s05,
+                coherence.s95 = coherence.s95,
                 llikeTrace=llikeTrace,
                 lpostTrace=lpostTrace, # log posterior: don't discard burnin to investigate convergence
                 lpriorTrace=lpriorTrace,
