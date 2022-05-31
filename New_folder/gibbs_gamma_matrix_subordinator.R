@@ -253,7 +253,8 @@ gibbs_m_nuisance <- function(data,
       if (var.order>0){                           ##
         a1 <- ar(data, order.max=var.order, aic=F)##
         sigma.fit <- a1$var.pred          ##
-        param__beta[,1] <- c(a1$ar)               ##  
+        param__beta[,1] <- c(a1$ar)               ## 
+        beta_prior <- mu_beta
         V_beta_inv <- solve(V_beta)               ##
         param__Sigma[,,1] <- sigma.fit            ##
         Y_mat <- apply(noise, 2, tail, n-var.order) ##
@@ -278,7 +279,7 @@ gibbs_m_nuisance <- function(data,
                       f_param_half=f_param_half,
                       f_param_half_trans=trans_cube(f_param_half),
                       beta=param__beta[,1],  ## 
-                      mu_beta=mu_beta,       ## include stuff for prior computation, iff toggle
+                      mu_beta=beta_prior,       ## include stuff for prior computation, iff toggle
                       V_beta_inv=V_beta_inv) ## 
     } else {
       ##
@@ -601,7 +602,7 @@ gibbs_m_nuisance <- function(data,
       # Full conditional of beta - Yixuan
       # TODO This proposal needs improval
       V_beta_post_inv <- V_beta_inv ##
-      param__beta_old <- V_beta_inv %*% mu_beta ##
+      param__beta_old <- V_beta_inv %*% beta_prior ##
       if (var.order>0) {   ##for (jj in 1:(n-var.order)) {
         for (jj in 1:(n-var.order)) { ##
           Z_t <- ZZ[((jj-1)*d+1):(jj*d),] ##
@@ -610,8 +611,8 @@ gibbs_m_nuisance <- function(data,
           param__beta_old <- param__beta_old + t(Z_t) %*% param__Sigma_inv[,,i] %*% Y_t ##  mimic var - Yixuan
         } ##
         V_beta_post <- solve(V_beta_post_inv) ##
-        param__beta.star <- V_beta_post %*% param__beta_old ##
-        param__beta.star <- MASS::mvrnorm(1, mu=param__beta.star, Sigma=V_beta_post) ##
+        beta_prior.star <- V_beta_post %*% param__beta_old ##
+        param__beta.star <- MASS::mvrnorm(1, mu=beta_prior.star, Sigma=V_beta_post) ##
         param__phi.star <- phiFromBeta_normalInverseWishart(param__beta.star, d, var.order) ##
         f_param.star <- psd_varma(lambda, param__phi.star, sigma=param__Sigma[,,i]) ## Note f_param.star is not psd_varma()$psd - Yixuan
         #indices_jj <- ((jj-1)*d*d+1):(jj*d*d)
@@ -623,18 +624,18 @@ gibbs_m_nuisance <- function(data,
         
         # plotMPsd(f_param.star, main="proposed")
         rejectedPhi <- F
-        if (any(apply(f_param.star$psd, 3, hasEigenValueSmallerZero, TOL=NUMERICAL_THRESH))) { # stay positive definite
-          if (verbose) print_warn("Discarding f_param proposal, because of positive definiteness")
-          param__beta[,i+1] <- param__beta[,i]
-          param__phi[,,i+1] <- param__phi[,,i]
-          rejectedPhi <- T
-        } 
-        if (numericalUnstable(f_param.star$psd, excludeBoundary=F, TOL=NUMERICAL_THRESH)) { # stay numerically stable
-          if (verbose) print_warn("Discarding f_param proposal, because of numerical instablity")
-          param__beta[,i+1] <- param__beta[,i]
-          param__phi[,,i+1] <- param__phi[,,i]
-          rejectedPhi <- T
-        }
+        #if (any(apply(f_param.star$psd, 3, hasEigenValueSmallerZero, TOL=NUMERICAL_THRESH))) { # stay positive definite
+        #  if (verbose) print_warn("Discarding f_param proposal, because of positive definiteness")
+        #  param__beta[,i+1] <- param__beta[,i]
+        #  param__phi[,,i+1] <- param__phi[,,i]
+        #  rejectedPhi <- T
+        #} 
+        #if (numericalUnstable(f_param.star$psd, excludeBoundary=F, TOL=NUMERICAL_THRESH)) { # stay numerically stable
+        #  if (verbose) print_warn("Discarding f_param proposal, because of numerical instablity")
+        #  param__beta[,i+1] <- param__beta[,i]
+        #  param__phi[,,i+1] <- param__phi[,,i]
+        #  rejectedPhi <- T
+        #}
         
         
         if (!rejectedPhi) {
@@ -643,7 +644,7 @@ gibbs_m_nuisance <- function(data,
                                f_param_half=f_param_half.star,
                                f_param_half_trans=trans_cube(f_param_half.star),
                                beta=param__beta.star,  ## 
-                               mu_beta=mu_beta,        ## include stuff for prior computation, too
+                               mu_beta=beta_prior.star,        ## include stuff for prior computation, too
                                V_beta_inv=V_beta_post_inv)  ##
           f.phi.star <- lpost_matrixGamma(omega=omega,
                                           FZ=FZ,
@@ -669,9 +670,10 @@ gibbs_m_nuisance <- function(data,
           if (log(runif(1,0,1)) < alpha5) {
             # accept
             param__beta[,i+1] <- param__beta.star
-            param__beta.old <- param__beta.star
+            beta_prior <- param__beta.star
             param__phi[,,i+1] <- param__phi.star
             phi.fit <- phi.fit.star
+            V_beta_inv <- V_beta_post_inv
             f.store <- f.phi.star
           } else {
             # reject
@@ -691,6 +693,10 @@ gibbs_m_nuisance <- function(data,
     if (theta_dim > 0) {
       if (corrected) {
         q_for_theta <- get_f_matrix(U[,,,i+1], r[,i+1], Z[,i+1], k[,i+1], db.list, prior.cholesky)
+        n_s_theta <- dim(q_for_theta)[3]
+        for (slt in 1:n_s_theta) {
+          q_for_theta[,,slt] <- solve(q_for_theta[,,slt])
+        }
         f_for_theta <- mult_cube(mult_cube(phi.fit$f_param_half, q_for_theta), phi.fit$f_param_half_trans)
         previous_theta <- theta[,i] # might change for corrected in case of double steps
       } else {
@@ -799,25 +805,6 @@ gibbs_m_nuisance <- function(data,
       param__Sigma_inv[,,i+1] <- rWishart(n=1, df=nu_Sigma_post, Sigma=S_Sigma_post_inv)[,,1]
       param__Sigma_tmp <- solve(param__Sigma_inv[,,i+1])
       param__Sigma[,,i+1] <- param__Sigma_tmp
-      f.store <- lpost_matrixGamma(omega=omega,
-                                   FZ=FZ, # note
-                                   r=r[,i+1],
-                                   U=U[,,,i+1],
-                                   Z=Z[,i+1],
-                                   k=k[,i+1],
-                                   C_alpha=C_alpha,
-                                   omega_fun=omega_fun,
-                                   k.theta=k.theta,
-                                   db.list=db.list,
-                                   eta=eta,
-                                   Sigma_fun=Sigma_fun,
-                                   corrected=corrected,
-                                   phi=phi.fit,
-                                   sigma_ar=param__Sigma[,,i+1],
-                                   prior.q=prior.q,
-                                   prior.cholesky=prior.cholesky,
-                                   excludeBoundary=T, # note
-                                   verbose=verbose)
     }
       
       
@@ -860,7 +847,7 @@ gibbs_m_nuisance <- function(data,
     if (corrected && toggle) {
       param__beta <- param__beta[,keep]
       param__phi <- param__phi[,,keep]
-      param__Sigma <- param__Sigma[,,keep]
+      param__Sigma <- param__Sigma[,,keep-1]
     } else {
       param__beta <- NULL
       param__phi <- NULL
@@ -869,7 +856,9 @@ gibbs_m_nuisance <- function(data,
     
     W <- array(dim=c(d,d,L,length(keep))) # for convenience
     fpsd.sample <- array(NA, dim=c(d, d, N, length(keep)))
-    
+    qpsd.sample <- array(NA, dim=c(d, d, N, length(keep))) #
+    ffpsd.sample <- array(NA, dim=c(d, d, N, length(keep))) #
+     
     # store the coherence
     comb_t_n <- ncol(combn(d, 2))
     comb_t <- combn(d, 2)
@@ -883,15 +872,22 @@ gibbs_m_nuisance <- function(data,
     for (isample in 1:length(keep)) {
       if (corrected && prior.q) {
         if (toggle) {
-          f_param_half <- chol_cube(psd_varma(lambda, param__phi[,,isample], sigma=param__Sigma[,,isample])$psd, excludeBoundary=F)
+          f_out <- psd_varma(lambda, param__phi[,,isample], sigma=param__Sigma[,,isample]) #
+          f_param_half <- chol_cube(f_out$psd, excludeBoundary=F)
           f_param_half_trans <- trans_cube(f_param_half)
         }
         q_sample <- get_f_matrix(U[,,,isample], r[,isample], Z[,isample], k[,isample], db.list, prior.cholesky)
+        #n_s <- dim(q_sample)[3]
+        #for (sl in 1:n_s){
+        #  q_sample[,,sl] <- solve(q_sample[,,sl])
+        #}
         f_sample <- mult_cube(mult_cube(f_param_half, q_sample), f_param_half_trans) # "prior on q=f/f_param"
       } else {
         f_sample <- get_f_matrix(U[,,,isample], r[,isample], Z[,isample], k[,isample], db.list, prior.cholesky)
       }
       fpsd.sample[,,,isample] <- realValuedPsd(f_sample)
+      qpsd.sample[,,,isample] <- realValuedPsd(q_sample) #
+      ffpsd.sample[,,,isample] <- realValuedPsd(f_out$psd) #
       for (ipair in 1:comb_t_n){
         index1 <- comb_t[1, ipair]
         index2 <- comb_t[2, ipair]
@@ -914,6 +910,9 @@ gibbs_m_nuisance <- function(data,
     # fpsd.s005 <- apply(fpsd.sample, c(1,2,3), quantile, 0.005)
     # fpsd.s995 <- apply(fpsd.sample, c(1,2,3), quantile, 0.995)
     
+    qpsd.s <- apply(qpsd.sample, c(1,2,3), median)
+    ffpsd.s <- apply(ffpsd.sample, c(1,2,3), median)
+    
     alpha_uci <- 0.1 # same as in 1D
     uci_tmp <- uci_matrix(fpsd.sample, alpha=alpha_uci)
     fpsd.uci05 <- uci_tmp$fpsd.uci05
@@ -923,9 +922,9 @@ gibbs_m_nuisance <- function(data,
     fpsd.uuci95 <- uuci_tmp$fpsd.uci95
     
     #squared coherence (prior squared) (median and 90% pointwise region)
-    coherence.s <- apply(coherence.sample, c(1, 2), median)
-    coherence.s05 <- apply(coherence.sample, c(1, 2), quantile, 0.05)
-    coherence.s95 <- apply(coherence.sample, c(1, 2), quantile, 0.95)
+    #coherence.s <- apply(coherence.sample, c(1, 2), median)
+    #coherence.s05 <- apply(coherence.sample, c(1, 2), quantile, 0.05)
+    #coherence.s95 <- apply(coherence.sample, c(1, 2), quantile, 0.95)
     
     
     # # Construct forecasts
@@ -975,11 +974,13 @@ gibbs_m_nuisance <- function(data,
                 # fpsd.s995=fpsd.s995,
                 # fpsd.uci05=fpsd.uci05,
                 # fpsd.uci95=fpsd.uci95,
-                fpsd.uuci05=fpsd.uuci05,
-                fpsd.uuci95=fpsd.uuci95,
-                coherence.s = coherence.s,
-                coherence.s05 = coherence.s05,
-                coherence.s95 = coherence.s95,
+                qpsd.s=qpsd.s,
+                ffpsd.s=ffpsd.s,
+                #fpsd.uuci05=fpsd.uuci05,
+                #fpsd.uuci95=fpsd.uuci95,
+                #coherence.s = coherence.s,
+                #coherence.s05 = coherence.s05,
+                #coherence.s95 = coherence.s95,
                 llikeTrace=llikeTrace,
                 lpostTrace=lpostTrace, # log posterior: don't discard burnin to investigate convergence
                 lpriorTrace=lpriorTrace,
