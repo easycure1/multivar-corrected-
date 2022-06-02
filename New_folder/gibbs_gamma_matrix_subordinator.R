@@ -607,14 +607,18 @@ gibbs_m_nuisance <- function(data,
         for (jj in 1:(n-var.order)) { ##
           Z_t <- ZZ[((jj-1)*d+1):(jj*d),] ##
           Y_t <- Y_vec[((jj-1)*d+1):(jj*d)] ##
-          V_beta_post_inv <- V_beta_post_inv + t(Z_t) %*% param__Sigma_inv[,,i] %*% Z_t ##
-          param__beta_old <- param__beta_old + t(Z_t) %*% param__Sigma_inv[,,i] %*% Y_t ##  mimic var - Yixuan
+          #V_beta_post_inv <- V_beta_post_inv + t(Z_t) %*% param__Sigma_inv[,,i] %*% Z_t ##
+          #param__beta_old <- param__beta_old + t(Z_t) %*% param__Sigma_inv[,,i] %*% Y_t ##  mimic var - Yixuan
+          V_beta_post_inv <- V_beta_post_inv + t(Z_t) %*% diag(d) %*% Z_t
+          param__beta_old <- param__beta_old + t(Z_t) %*% diag(d) %*% Y_t
         } ##
         V_beta_post <- solve(V_beta_post_inv) ##
         beta_prior.star <- V_beta_post %*% param__beta_old ##
         param__beta.star <- MASS::mvrnorm(1, mu=beta_prior.star, Sigma=V_beta_post) ##
         param__phi.star <- phiFromBeta_normalInverseWishart(param__beta.star, d, var.order) ##
-        f_param.star <- psd_varma(lambda, param__phi.star, sigma=param__Sigma[,,i]) ## Note f_param.star is not psd_varma()$psd - Yixuan
+        #f_param.star <- psd_varma(lambda, param__phi.star, sigma=param__Sigma[,,i]) ## Note f_param.star is not psd_varma()$psd - Yixuan
+        f_param.star <- psd_varma(lambda, param__phi.star, sigma=diag(d))
+        f_param_half.star <- chol_cube(f_param.star$psd, excludeBoundary=F)
         #indices_jj <- ((jj-1)*d*d+1):(jj*d*d)
         #param__beta.star <- param__beta.old
         #param__beta.star[indices_jj] <- param__beta.star[indices_jj] + 
@@ -623,7 +627,7 @@ gibbs_m_nuisance <- function(data,
         #f_param.star <- psd_varma(lambda, param__phi.star, sigma=sigma.fit)$psd
         
         # plotMPsd(f_param.star, main="proposed")
-        rejectedPhi <- F
+        #rejectedPhi <- F
         #if (any(apply(f_param.star$psd, 3, hasEigenValueSmallerZero, TOL=NUMERICAL_THRESH))) { # stay positive definite
         #  if (verbose) print_warn("Discarding f_param proposal, because of positive definiteness")
         #  param__beta[,i+1] <- param__beta[,i]
@@ -638,50 +642,20 @@ gibbs_m_nuisance <- function(data,
         #}
         
         
-        if (!rejectedPhi) {
-          f_param_half.star <- chol_cube(f_param.star$psd, excludeBoundary=F)
-          phi.fit.star <- list(ar=param__phi.star,
-                               f_param_half=f_param_half.star,
-                               f_param_half_trans=trans_cube(f_param_half.star),
-                               beta=param__beta.star,  ## 
-                               mu_beta=beta_prior.star,        ## include stuff for prior computation, too
-                               V_beta_inv=V_beta_post_inv)  ##
-          f.phi.star <- lpost_matrixGamma(omega=omega,
-                                          FZ=FZ,
-                                          r=r[,i+1],
-                                          U=U[,,,i+1],
-                                          Z=Z[,i+1],
-                                          k=k[,i+1],
-                                          C_alpha=C_alpha,
-                                          omega_fun=omega_fun,
-                                          k.theta=k.theta,
-                                          db.list=db.list,
-                                          eta=eta,
-                                          Sigma_fun=Sigma_fun,
-                                          corrected=corrected,
-                                          phi=phi.fit.star, #
-                                          sigma_ar=param__Sigma[,,i], ##??? - Yixuan
-                                          prior.q=prior.q,
-                                          prior.cholesky=prior.cholesky,
-                                          excludeBoundary=T, # note
-                                          verbose=verbose)
-          f.phi <- f.store
-          alpha5 <- min(0, f.phi.star - f.phi) # Note: Normal proposal symmetric for beta
-          if (log(runif(1,0,1)) < alpha5) {
-            # accept
-            param__beta[,i+1] <- param__beta.star
-            beta_prior <- param__beta.star
-            param__phi[,,i+1] <- param__phi.star
-            phi.fit <- phi.fit.star
-            V_beta_inv <- V_beta_post_inv
-            f.store <- f.phi.star
-          } else {
-            # reject
-            param__beta[,i+1] <- param__beta[,i]
-            param__phi[,,i+1] <- param__phi[,,i]
-          }
-        }
+        
       }
+      phi.fit <- list(ar=param__phi.star,
+                      f_param_half=f_param_half.star,
+                      f_param_half_trans=trans_cube(f_param_half.star),
+                      beta=param__beta.star,  ## 
+                      mu_beta=beta_prior.star,        ## include stuff for prior computation, too
+                      V_beta_inv=V_beta_post_inv)  ##
+      param__beta[,i+1] <- param__beta.star
+      beta_prior <- param__beta.star
+      param__phi[,,i+1] <- param__phi.star
+      #phi.fit <- phi.fit.star
+      V_beta_inv <- V_beta_post_inv
+      #f.store <- f.phi.star
     }
     
     
@@ -847,7 +821,7 @@ gibbs_m_nuisance <- function(data,
     if (corrected && toggle) {
       param__beta <- param__beta[,keep]
       param__phi <- param__phi[,,keep]
-      param__Sigma <- param__Sigma[,,keep-1]
+      param__Sigma <- param__Sigma[,,keep]
     } else {
       param__beta <- NULL
       param__phi <- NULL
@@ -873,6 +847,7 @@ gibbs_m_nuisance <- function(data,
       if (corrected && prior.q) {
         if (toggle) {
           f_out <- psd_varma(lambda, param__phi[,,isample], sigma=param__Sigma[,,isample]) #
+          #f_out <- psd_varma(lambda, param__phi[,,isample], sigma=diag(d))
           f_param_half <- chol_cube(f_out$psd, excludeBoundary=F)
           f_param_half_trans <- trans_cube(f_param_half)
         }
@@ -988,5 +963,4 @@ gibbs_m_nuisance <- function(data,
                 theta=theta))#,
     #data_forecast=data_forecast))
   }
-
 
