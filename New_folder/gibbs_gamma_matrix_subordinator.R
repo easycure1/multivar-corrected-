@@ -388,12 +388,17 @@ gibbs_m_nuisance <- function(data,
       lsd_U <- lsd_U + ((batch.U.acceptanceRate > adaption.targetAcceptanceRate)*2-1) * adaption.delta
       eps_U <- exp(2*lsd_U)
       ### parametric part (first component of phi matrices suffices)
-      #if (corrected && toggle) {
-      #  batch.param <- param__phi[1,(1:var.order)*(d-1)+1,batch,drop=F]
-      #  batch.param.acceptanceRate <- apply(batch.param, 1, acceptanceRate)
-      #  lsd_param <- lsd_param + ((batch.param.acceptanceRate > adaption.targetAcceptanceRate)*2-1) * adaption.delta
-      #  eps_param <- exp(2*lsd_param)
-      #}
+      if (corrected && toggle) {
+        batch.param <- param__phi[1,(1:var.order)*(d-1)+1,batch,drop=F]
+        batch.param.acceptanceRate <- apply(batch.param, 1, acceptanceRate)
+        #lsd_param <- lsd_param + ((batch.param.acceptanceRate > adaption.targetAcceptanceRate)*2-1) * adaption.delta
+        #eps_param <- exp(2*lsd_param)
+        lsq_V_beta <- sqrt(V_beta[1]) + ((batch.param.acceptanceRate > adaption.targetAcceptanceRate)*2-1) * adaption.delta
+        V_beta <- diag(exp(2*lsq_V_beta), dim(V_beta)[1])
+        V_beta_inv <- solve(V_beta)
+        lsq_S_Sigma <- sqrt(S_Sigma[1]) + ((batch.param.acceptanceRate > adaption.targetAcceptanceRate)*2-1) * adaption.delta
+        S_Sigma <- diag(exp(2*lsq_S_Sigma), dim(S_Sigma)[1])
+      }
     }
     
     ##
@@ -601,24 +606,21 @@ gibbs_m_nuisance <- function(data,
     if (corrected && toggle) {
       # Full conditional of beta - Yixuan
       # TODO This proposal needs improval
-      V_beta_post_inv <- V_beta_inv ##
+      previous_theta <- theta[,i]
       param__beta_old <- V_beta_inv %*% beta_prior ##
+      V_beta_post_inv <- V_beta_inv
       if (var.order>0) {   ##for (jj in 1:(n-var.order)) {
         for (jj in 1:(n-var.order)) { ##
           Z_t <- ZZ[((jj-1)*d+1):(jj*d),] ##
           Y_t <- Y_vec[((jj-1)*d+1):(jj*d)] ##
-          #V_beta_post_inv <- V_beta_post_inv + t(Z_t) %*% param__Sigma_inv[,,i] %*% Z_t ##
-          #param__beta_old <- param__beta_old + t(Z_t) %*% param__Sigma_inv[,,i] %*% Y_t ##  mimic var - Yixuan
-          V_beta_post_inv <- V_beta_post_inv + t(Z_t) %*% diag(d) %*% Z_t
-          param__beta_old <- param__beta_old + t(Z_t) %*% diag(d) %*% Y_t
+          V_beta_post_inv <- V_beta_post_inv + t(Z_t) %*% param__Sigma_inv[,,i] %*% Z_t ##
+          param__beta_old <- param__beta_old + t(Z_t) %*% param__Sigma_inv[,,i] %*% Y_t ##  mimic var - Yixuan
         } ##
-        V_beta_post <- solve(V_beta_post_inv) ##
+        V_beta_post <- solve(V_beta_post_inv)
         beta_prior.star <- V_beta_post %*% param__beta_old ##
         param__beta.star <- MASS::mvrnorm(1, mu=beta_prior.star, Sigma=V_beta_post) ##
         param__phi.star <- phiFromBeta_normalInverseWishart(param__beta.star, d, var.order) ##
         #f_param.star <- psd_varma(lambda, param__phi.star, sigma=param__Sigma[,,i]) ## Note f_param.star is not psd_varma()$psd - Yixuan
-        f_param.star <- psd_varma(lambda, param__phi.star, sigma=diag(d))
-        f_param_half.star <- chol_cube(f_param.star$psd, excludeBoundary=F)
         #indices_jj <- ((jj-1)*d*d+1):(jj*d*d)
         #param__beta.star <- param__beta.old
         #param__beta.star[indices_jj] <- param__beta.star[indices_jj] + 
@@ -627,7 +629,7 @@ gibbs_m_nuisance <- function(data,
         #f_param.star <- psd_varma(lambda, param__phi.star, sigma=sigma.fit)$psd
         
         # plotMPsd(f_param.star, main="proposed")
-        #rejectedPhi <- F
+        rejectedPhi <- F
         #if (any(apply(f_param.star$psd, 3, hasEigenValueSmallerZero, TOL=NUMERICAL_THRESH))) { # stay positive definite
         #  if (verbose) print_warn("Discarding f_param proposal, because of positive definiteness")
         #  param__beta[,i+1] <- param__beta[,i]
@@ -641,21 +643,64 @@ gibbs_m_nuisance <- function(data,
         #  rejectedPhi <- T
         #}
         
-        
-        
+        if (!rejectedPhi) {
+          f_param.star <- psd_varma(lambda, param__phi.star, sigma=param__Sigma_inv[,,i])
+          f_param_half.star <- chol_cube(f_param.star$psd, excludeBoundary=F)
+          q_for_theta <- get_f_matrix(U[,,,i+1], r[,i+1], Z[,i+1], k[,i+1], db.list, prior.cholesky)
+          theta_prop <- propose_next_theta(data=data, f=f_for_theta, previous_theta=previous_theta, NULL)
+          theta_star <- theta_prop
+          noise_star <- get_noise(data, theta_star)
+          FZ_star <- mdft(noise_star)
+          phi.fit.star <- list(ar=param__phi.star,
+                               f_param_half=f_param_half.star,
+                               f_param_half_trans=trans_cube(f_param_half.star),
+                               beta=param__beta.star,  ## 
+                               mu_beta=beta_prior.star,        ## include stuff for prior computation, too
+                               V_beta_inv=V_beta_post_inv)  ##
+          
+          f.phi.star <- lpost_matrixGamma(omega=omega,
+                                          FZ=FZ,
+                                          r=r[,i+1],
+                                          U=U[,,,i+1],
+                                          Z=Z[,i+1],
+                                          k=k[,i+1],
+                                          C_alpha=C_alpha,
+                                          omega_fun=omega_fun,
+                                          k.theta=k.theta,
+                                          db.list=db.list,
+                                          eta=eta,
+                                          Sigma_fun=Sigma_fun,
+                                          corrected=corrected,
+                                          phi=phi.fit.star, #
+                                          sigma_ar=param__Sigma[,,i], ##??? - Yixuan
+                                          prior.q=prior.q,
+                                          prior.cholesky=prior.cholesky,
+                                          excludeBoundary=T, # note
+                                          verbose=verbose)
+          f.phi <- f.store
+          alpha5 <- min(0, f.phi.star + lprior_theta(theta_star)
+                        - f.phi - lprior_theta(previous_theta)) # Note: Normal proposal symmetric for beta
+          if (log(runif(1,0,1)) < alpha5) {
+            # accept
+            param__beta[,i+1] <- param__beta.star
+            beta_prior <- param__beta.star
+            param__phi[,,i+1] <- param__phi.star
+            phi.fit <- phi.fit.star
+            f.store <- f.phi.star
+            theta[,i+1] <- previous_theta <- theta_star
+            noise <- noise_star
+            FZ <- FZ_star
+            Y_mat <- apply(noise, 2, tail, n-var.order)
+            Y_vec <- c(t(Y_mat))
+            ZZ <- VAR_regressor_matrix(noise, var.order)
+          } else {
+            # reject
+            param__beta[,i+1] <- param__beta[,i]
+            param__phi[,,i+1] <- param__phi[,,i]
+            theta[,i+1] <- previous_theta
+          }
+        }
       }
-      phi.fit <- list(ar=param__phi.star,
-                      f_param_half=f_param_half.star,
-                      f_param_half_trans=trans_cube(f_param_half.star),
-                      beta=param__beta.star,  ## 
-                      mu_beta=beta_prior.star,        ## include stuff for prior computation, too
-                      V_beta_inv=V_beta_post_inv)  ##
-      param__beta[,i+1] <- param__beta.star
-      beta_prior <- param__beta.star
-      param__phi[,,i+1] <- param__phi.star
-      #phi.fit <- phi.fit.star
-      V_beta_inv <- V_beta_post_inv
-      #f.store <- f.phi.star
     }
     
     
@@ -668,17 +713,18 @@ gibbs_m_nuisance <- function(data,
       if (corrected) {
         q_for_theta <- get_f_matrix(U[,,,i+1], r[,i+1], Z[,i+1], k[,i+1], db.list, prior.cholesky)
         n_s_theta <- dim(q_for_theta)[3]
-        for (slt in 1:n_s_theta) {
-          q_for_theta[,,slt] <- solve(q_for_theta[,,slt])
-        }
+        #for (slt in 1:n_s_theta) {
+        #  q_for_theta[,,slt] <- solve(q_for_theta[,,slt])
+        #}
         f_for_theta <- mult_cube(mult_cube(phi.fit$f_param_half, q_for_theta), phi.fit$f_param_half_trans)
-        previous_theta <- theta[,i] # might change for corrected in case of double steps
+        #previous_theta <- theta[,i] # might change for corrected in case of double steps
+        previous_theta <- theta[,i+1]
       } else {
         f_for_theta <- get_f_matrix(U[,,,i+1], r[,i+1], Z[,i+1], k[,i+1], db.list, prior.cholesky)
         previous_theta <- theta[,i] # might change for corrected in case of double steps
       }
       theta_prop <- propose_next_theta(data=data, f=f_for_theta, previous_theta=previous_theta, NULL)
-      theta_star <- theta_prop$theta_star
+      theta_star <- theta_prop#$theta_star
       noise_star <- get_noise(data, theta_star)  # noise = data - signal
       FZ_star <- mdft(noise_star)  # Frequency domain
       
@@ -807,160 +853,122 @@ gibbs_m_nuisance <- function(data,
     ## Post processing
     ##
     #print("Postprocessing results ...")
-    keep <- seq(burnin+1, Ntotal, by=thin)
-    
-    if (prior.cholesky) {
-      k <- k[,keep]
-    } else {
-      k <- array(data=k[,keep], dim=c(1, length(keep))) 
-    }
-    r <- r[,keep]
-    Z <- Z[,keep]
-    U <- U[,,,keep]
-    U__phi <- U__phi[,,keep]
-    if (corrected && toggle) {
-      param__beta <- param__beta[,keep]
-      param__phi <- param__phi[,,keep]
-      param__Sigma <- param__Sigma[,,keep]
-    } else {
-      param__beta <- NULL
-      param__phi <- NULL
-    }
-    theta <- theta[,keep,drop=F]
-    
-    W <- array(dim=c(d,d,L,length(keep))) # for convenience
-    fpsd.sample <- array(NA, dim=c(d, d, N, length(keep)))
-    qpsd.sample <- array(NA, dim=c(d, d, N, length(keep))) #
-    ffpsd.sample <- array(NA, dim=c(d, d, N, length(keep))) #
-     
-    # store the coherence
-    comb_t_n <- ncol(combn(d, 2))
-    comb_t <- combn(d, 2)
-    coherence.sample <- array(NA, dim = c(N, comb_t_n, length(keep)))
-    
-    # Corrected (not toggled yet)
-    if (corrected && prior.q && (!toggle)) {
-      f_param_half <- chol_cube(psd_varma(lambda, phi.fit$ar, sigma=sigma.fit)$psd, excludeBoundary=F)
-      f_param_half_trans <- trans_cube(f_param_half)
-    }
-    for (isample in 1:length(keep)) {
-      if (corrected && prior.q) {
-        if (toggle) {
-          f_out <- psd_varma(lambda, param__phi[,,isample], sigma=param__Sigma[,,isample]) #
-          #f_out <- psd_varma(lambda, param__phi[,,isample], sigma=diag(d))
-          f_param_half <- chol_cube(f_out$psd, excludeBoundary=F)
-          f_param_half_trans <- trans_cube(f_param_half)
-        }
-        q_sample <- get_f_matrix(U[,,,isample], r[,isample], Z[,isample], k[,isample], db.list, prior.cholesky)
-        #n_s <- dim(q_sample)[3]
-        #for (sl in 1:n_s){
-        #  q_sample[,,sl] <- solve(q_sample[,,sl])
-        #}
-        f_sample <- mult_cube(mult_cube(f_param_half, q_sample), f_param_half_trans) # "prior on q=f/f_param"
-      } else {
-        f_sample <- get_f_matrix(U[,,,isample], r[,isample], Z[,isample], k[,isample], db.list, prior.cholesky)
-      }
-      fpsd.sample[,,,isample] <- realValuedPsd(f_sample)
-      qpsd.sample[,,,isample] <- realValuedPsd(q_sample) #
-      ffpsd.sample[,,,isample] <- realValuedPsd(f_out$psd) #
-      for (ipair in 1:comb_t_n){
-        index1 <- comb_t[1, ipair]
-        index2 <- comb_t[2, ipair]
-        f1 <- fpsd.sample[index1, index1,,isample]
-        f2 <- fpsd.sample[index2, index2,,isample]
-        f_Re <- fpsd.sample[index1, index2,,isample]
-        f_Im <- fpsd.sample[index2, index1,,isample]
-        coherence.sample[,ipair, isample] <- sqrt(f_Re^2+f_Im^2)/sqrt(f1*f2)
-      }
-    }
-    fpsd.s <- apply(fpsd.sample, c(1,2,3), median)
-    fpsd.mean <- apply(fpsd.sample, c(1,2,3), mean)
-    # pointwise 90%
-    fpsd.s05 <- apply(fpsd.sample, c(1,2,3), quantile, 0.05)
-    fpsd.s95 <- apply(fpsd.sample, c(1,2,3), quantile, 0.95)
-    # # pointwise 95%
-    # fpsd.s025 <- apply(fpsd.sample, c(1,2,3), quantile, 0.025)
-    # fpsd.s975 <- apply(fpsd.sample, c(1,2,3), quantile, 0.975)
-    # # pointwise 99%
-    # fpsd.s005 <- apply(fpsd.sample, c(1,2,3), quantile, 0.005)
-    # fpsd.s995 <- apply(fpsd.sample, c(1,2,3), quantile, 0.995)
-    
-    qpsd.s <- apply(qpsd.sample, c(1,2,3), median)
-    ffpsd.s <- apply(ffpsd.sample, c(1,2,3), median)
-    
-    alpha_uci <- 0.1 # same as in 1D
-    uci_tmp <- uci_matrix(fpsd.sample, alpha=alpha_uci)
-    fpsd.uci05 <- uci_tmp$fpsd.uci05
-    fpsd.uci95 <- uci_tmp$fpsd.uci95
-    uuci_tmp <- uci_matrix(fpsd.sample, alpha=alpha_uci, uniform_among_components=T)
-    fpsd.uuci05 <- uuci_tmp$fpsd.uci05
-    fpsd.uuci95 <- uuci_tmp$fpsd.uci95
-    
-    #squared coherence (prior squared) (median and 90% pointwise region)
-    #coherence.s <- apply(coherence.sample, c(1, 2), median)
-    #coherence.s05 <- apply(coherence.sample, c(1, 2), quantile, 0.05)
-    #coherence.s95 <- apply(coherence.sample, c(1, 2), quantile, 0.95)
-    
-    
-    # # Construct forecasts
-    # N_FORECAST <- 5
-    # rm("db.list") # clear some memory
-    # db.list_forecast <- dbList(n+N_FORECAST, kmax, normalized=normalizedBernsteins, bernstein_l, bernstein_r) 
-    # N_MCMC_IT <- length(keep)
-    # data_forecast <- array(data=NA, dim=c(N_FORECAST, d, N_MCMC_IT))
-    # for (isample in 1:N_MCMC_IT) {
-    #   if (!(i%%print_interval)) {
-    #     cat("forecasting ", isample, "/", N_MCMC_IT, "\n", sep="")
-    #   }
-    #   noise <- get_noise(data, theta[,isample])
-    #   if (corrected && prior.q) {
-    #     stop("TODO: Include forecast to corrected branch")
-    #   }
-    #   else {
-    #     f_forecast <- get_f_matrix(U[,,,isample], 
-    #                                r[,isample], 
-    #                                Z[,isample], 
-    #                                k[,isample], 
-    #                                db.list_forecast, 
-    #                                prior.cholesky)
-    #   }
-    #   noise_forecast <- vnp_forecast(noise, f_forecast, N_FORECAST)
-    #   noise_all <- rbind(noise, noise_forecast)
-    #   data_forecast[,,isample] <- get_data(noise_all, theta[,isample])[-(1:nrow(noise)),]
-    # }
-    
-    ##
-    ## Return stuff
-    ##
-    return(list(data=data,
-                k=k,
-                r=r,
-                Z=Z,
-                U=U,
-                U__phi=U__phi,
-                W=W,
-                fpsd.s=fpsd.s,
-                fpsd.mean=fpsd.mean,
-                fpsd.s05=fpsd.s05,
-                fpsd.s95=fpsd.s95,
-                # fpsd.s025=fpsd.s025,
-                # fpsd.s975=fpsd.s975,
-                # fpsd.s005=fpsd.s005,
-                # fpsd.s995=fpsd.s995,
-                # fpsd.uci05=fpsd.uci05,
-                # fpsd.uci95=fpsd.uci95,
-                qpsd.s=qpsd.s,
-                ffpsd.s=ffpsd.s,
-                #fpsd.uuci05=fpsd.uuci05,
-                #fpsd.uuci95=fpsd.uuci95,
-                #coherence.s = coherence.s,
-                #coherence.s05 = coherence.s05,
-                #coherence.s95 = coherence.s95,
-                llikeTrace=llikeTrace,
-                lpostTrace=lpostTrace, # log posterior: don't discard burnin to investigate convergence
-                lpriorTrace=lpriorTrace,
-                param__phi=param__phi,
-                theta=theta))#,
-    #data_forecast=data_forecast))
+  keep <- seq(burnin+1, Ntotal, by=thin)
+  
+  if (prior.cholesky) {
+    k <- k[,keep]
+  } else {
+    k <- array(data=k[,keep], dim=c(1, length(keep))) 
   }
+  r <- r[,keep]
+  Z <- Z[,keep]
+  U <- U[,,,keep]
+  U__phi <- U__phi[,,keep]
+  if (corrected && toggle) {
+    param__beta <- param__beta[,keep]
+    param__phi <- param__phi[,,keep]
+    param__Sigma <- param__Sigma[,,keep]
+  } else {
+    param__beta <- NULL
+    param__phi <- NULL
+  }
+  theta <- theta[,keep,drop=F]
+  
+  W <- array(dim=c(d,d,L,length(keep))) # for convenience
+  fpsd.sample <- array(NA, dim=c(d, d, N, length(keep)))
+  
+  # Corrected (not toggled yet)
+  if (corrected && prior.q && (!toggle)) {
+    f_param_half <- chol_cube(psd_varma(lambda, phi.fit$ar, sigma=sigma.fit)$psd, excludeBoundary=F)
+    f_param_half_trans <- trans_cube(f_param_half)
+  }
+  for (isample in 1:length(keep)) {
+    if (corrected && prior.q) {
+      if (toggle) {
+        f_param_half <- chol_cube(psd_varma(lambda, param__phi[,,isample], sigma=param__Sigma[,,isample])$psd, excludeBoundary=F)
+        f_param_half_trans <- trans_cube(f_param_half)
+      }
+      q_sample <- get_f_matrix(U[,,,isample], r[,isample], Z[,isample], k[,isample], db.list, prior.cholesky)
+      f_sample <- mult_cube(mult_cube(f_param_half, q_sample), f_param_half_trans) # "prior on q=f/f_param"
+    } else {
+      f_sample <- get_f_matrix(U[,,,isample], r[,isample], Z[,isample], k[,isample], db.list, prior.cholesky)
+    }
+    fpsd.sample[,,,isample] <- realValuedPsd(f_sample)
+  }
+  fpsd.s <- apply(fpsd.sample, c(1,2,3), median)
+  fpsd.mean <- apply(fpsd.sample, c(1,2,3), mean)
+  # pointwise 90%
+  fpsd.s05 <- apply(fpsd.sample, c(1,2,3), quantile, 0.05)
+  fpsd.s95 <- apply(fpsd.sample, c(1,2,3), quantile, 0.95)
+  # # pointwise 95%
+  # fpsd.s025 <- apply(fpsd.sample, c(1,2,3), quantile, 0.025)
+  # fpsd.s975 <- apply(fpsd.sample, c(1,2,3), quantile, 0.975)
+  # # pointwise 99%
+  # fpsd.s005 <- apply(fpsd.sample, c(1,2,3), quantile, 0.005)
+  # fpsd.s995 <- apply(fpsd.sample, c(1,2,3), quantile, 0.995)
+  
+  alpha_uci <- 0.1 # same as in 1D
+  uci_tmp <- uci_matrix(fpsd.sample, alpha=alpha_uci)
+  fpsd.uci05 <- uci_tmp$fpsd.uci05
+  fpsd.uci95 <- uci_tmp$fpsd.uci95
+  uuci_tmp <- uci_matrix(fpsd.sample, alpha=alpha_uci, uniform_among_components=T)
+  fpsd.uuci05 <- uuci_tmp$fpsd.uci05
+  fpsd.uuci95 <- uuci_tmp$fpsd.uci95
+  
+  # # Construct forecasts
+  # N_FORECAST <- 5
+  # rm("db.list") # clear some memory
+  # db.list_forecast <- dbList(n+N_FORECAST, kmax, normalized=normalizedBernsteins, bernstein_l, bernstein_r) 
+  # N_MCMC_IT <- length(keep)
+  # data_forecast <- array(data=NA, dim=c(N_FORECAST, d, N_MCMC_IT))
+  # for (isample in 1:N_MCMC_IT) {
+  #   if (!(i%%print_interval)) {
+  #     cat("forecasting ", isample, "/", N_MCMC_IT, "\n", sep="")
+  #   }
+  #   noise <- get_noise(data, theta[,isample])
+  #   if (corrected && prior.q) {
+  #     stop("TODO: Include forecast to corrected branch")
+  #   }
+  #   else {
+  #     f_forecast <- get_f_matrix(U[,,,isample], 
+  #                                r[,isample], 
+  #                                Z[,isample], 
+  #                                k[,isample], 
+  #                                db.list_forecast, 
+  #                                prior.cholesky)
+  #   }
+  #   noise_forecast <- vnp_forecast(noise, f_forecast, N_FORECAST)
+  #   noise_all <- rbind(noise, noise_forecast)
+  #   data_forecast[,,isample] <- get_data(noise_all, theta[,isample])[-(1:nrow(noise)),]
+  # }
+  
+  ##
+  ## Return stuff
+  ##
+  return(list(data=data,
+              k=k,
+              r=r,
+              Z=Z,
+              U=U,
+              U__phi=U__phi,
+              W=W,
+              fpsd.s=fpsd.s,
+              fpsd.mean=fpsd.mean,
+              fpsd.s05=fpsd.s05,
+              fpsd.s95=fpsd.s95,
+              # fpsd.s025=fpsd.s025,
+              # fpsd.s975=fpsd.s975,
+              # fpsd.s005=fpsd.s005,
+              # fpsd.s995=fpsd.s995,
+              # fpsd.uci05=fpsd.uci05,
+              # fpsd.uci95=fpsd.uci95,
+              fpsd.uuci05=fpsd.uuci05,
+              fpsd.uuci95=fpsd.uuci95,
+              llikeTrace=llikeTrace,
+              lpostTrace=lpostTrace, # log posterior: don't discard burnin to investigate convergence
+              lpriorTrace=lpriorTrace,
+              param__phi=param__phi,
+              theta=theta))#,
+  #data_forecast=data_forecast))
+}
 
