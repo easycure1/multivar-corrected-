@@ -604,6 +604,21 @@ gibbs_m_nuisance <- function(data,
     ##
     #print("Step 5")
     if (corrected && toggle) {
+      nu_Sigma_post <- n - var.order + nu_Sigma
+      S_Sigma_post <- S_Sigma
+      for (tt in 1:(n-var.order)) {
+        Z_t <- ZZ[((tt-1)*d+1):(tt*d),]
+        Y_t <- Y_vec[((tt-1)*d+1):(tt*d)]
+        ymZb <- Y_t - Z_t %*% param__beta[,i]
+        S_Sigma_post <- S_Sigma_post + ymZb %*% t(ymZb)
+      }
+      S_Sigma_post_inv <- solve(S_Sigma_post)
+      param__Sigma_inv_tmp <- rWishart(n=1, df=nu_Sigma_post, Sigma=S_Sigma_post_inv)[,,1]
+      param__Sigma_tmp <- solve(param__Sigma_inv_tmp)
+      
+      
+      
+      
       # Full conditional of beta - Yixuan
       # TODO This proposal needs improval
       previous_theta <- theta[,i]
@@ -613,8 +628,8 @@ gibbs_m_nuisance <- function(data,
         for (jj in 1:(n-var.order)) { ##
           Z_t <- ZZ[((jj-1)*d+1):(jj*d),] ##
           Y_t <- Y_vec[((jj-1)*d+1):(jj*d)] ##
-          V_beta_post_inv <- V_beta_post_inv + t(Z_t) %*% param__Sigma_inv[,,i] %*% Z_t ##
-          param__beta_old <- param__beta_old + t(Z_t) %*% param__Sigma_inv[,,i] %*% Y_t ##  mimic var - Yixuan
+          V_beta_post_inv <- V_beta_post_inv + t(Z_t) %*% param__Sigma_inv_tmp %*% Z_t ##
+          param__beta_old <- param__beta_old + t(Z_t) %*% param__Sigma_inv_tmp %*% Y_t ##  mimic var - Yixuan
         } ##
         V_beta_post <- solve(V_beta_post_inv)
         beta_prior.star <- V_beta_post %*% param__beta_old ##
@@ -644,7 +659,7 @@ gibbs_m_nuisance <- function(data,
         #}
         
         if (!rejectedPhi) {
-          f_param.star <- psd_varma(lambda, param__phi.star, sigma=param__Sigma_inv[,,i])
+          f_param.star <- psd_varma(lambda, param__phi.star, sigma=param__Sigma_tmp)
           f_param_half.star <- chol_cube(f_param.star$psd, excludeBoundary=F)
           q_for_theta <- get_f_matrix(U[,,,i+1], r[,i+1], Z[,i+1], k[,i+1], db.list, prior.cholesky)
           theta_prop <- propose_next_theta(data=data, f=f_for_theta, previous_theta=previous_theta, NULL)
@@ -672,14 +687,16 @@ gibbs_m_nuisance <- function(data,
                                           Sigma_fun=Sigma_fun,
                                           corrected=corrected,
                                           phi=phi.fit.star, #
-                                          sigma_ar=param__Sigma[,,i], ##??? - Yixuan
+                                          sigma_ar=param__Sigma_tmp, ##??? - Yixuan
                                           prior.q=prior.q,
                                           prior.cholesky=prior.cholesky,
                                           excludeBoundary=T, # note
                                           verbose=verbose)
           f.phi <- f.store
-          alpha5 <- min(0, f.phi.star + lprior_theta(theta_star)
-                        - f.phi - lprior_theta(previous_theta)) # Note: Normal proposal symmetric for beta
+          lprior_Sigma <- (-(nu_Sigma+d+1)/2)*log(abs(det(param__Sigma[,,i])))-1/2*tr(S_Sigma%*%solve(param__Sigma[,,i]))
+          lprior_Sigma_star <- (-(nu_Sigma_post+d+1)/2)*log(abs(det(param__Sigma_inv_tmp)))-1/2*tr(S_Sigma_post%*%param__Sigma_inv_tmp)
+          alpha5 <- min(0, f.phi.star + lprior_theta(theta_star) + Re(lprior_Sigma_star)
+                        - f.phi - Re(lprior_Sigma) - lprior_theta(previous_theta)) # Note: Normal proposal symmetric for beta
           if (log(runif(1,0,1)) < alpha5) {
             # accept
             param__beta[,i+1] <- param__beta.star
@@ -693,11 +710,18 @@ gibbs_m_nuisance <- function(data,
             Y_mat <- apply(noise, 2, tail, n-var.order)
             Y_vec <- c(t(Y_mat))
             ZZ <- VAR_regressor_matrix(noise, var.order)
+            param__Sigma[,,i+1] <- param__Sigma_tmp
+            #V_beta <- V_beta_post
+            #V_beta_inv <- V_beta_post_inv
+            #nu_Sigma <- nu_Sigma_post
+            #S_Sigma <- S_Sigma_post
           } else {
             # reject
             param__beta[,i+1] <- param__beta[,i]
             param__phi[,,i+1] <- param__phi[,,i]
             theta[,i+1] <- previous_theta
+            #param__Sigma[,,i+1] <- param__Sigma[,,i]
+            param__Sigma[,,i+1] <- param__Sigma_tmp
           }
         }
       }
@@ -812,20 +836,6 @@ gibbs_m_nuisance <- function(data,
     ## Step 7: Full conditional of param_Sigma_inv
     ##
     
-    if (corrected && toggle) {
-      nu_Sigma_post <- n - var.order + nu_Sigma
-      S_Sigma_post <- S_Sigma
-      for (tt in 1:(n-var.order)) {
-        Z_t <- ZZ[((tt-1)*d+1):(tt*d),]
-        Y_t <- Y_vec[((tt-1)*d+1):(tt*d)]
-        ymZb <- Y_t - Z_t %*% param__beta[,i+1]
-        S_Sigma_post <- S_Sigma_post + ymZb %*% t(ymZb)
-      }
-      S_Sigma_post_inv <- solve(S_Sigma_post)
-      param__Sigma_inv[,,i+1] <- rWishart(n=1, df=nu_Sigma_post, Sigma=S_Sigma_post_inv)[,,1]
-      param__Sigma_tmp <- solve(param__Sigma_inv[,,i+1])
-      param__Sigma[,,i+1] <- param__Sigma_tmp
-    }
       
       
       ##
@@ -971,4 +981,5 @@ gibbs_m_nuisance <- function(data,
               theta=theta))#,
   #data_forecast=data_forecast))
 }
+
 
